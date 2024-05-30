@@ -4,6 +4,7 @@ from . import config, view
 
 # Initialize our bot
 intents = discord.Intents.default()
+intents.members = True
 intents.message_content = True
 bot = commands.Bot(command_prefix=commands.when_mentioned, intents=intents)
 
@@ -31,6 +32,7 @@ async def on_message(message):
 
     # Unknow message, try commands
     await bot.process_commands(message)
+
 
 @bot.command(name='add-tester')
 async def add_tester(ctx: commands.Context):
