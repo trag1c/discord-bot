@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Mitchell Hashimoto <m@mitchellh.com>"]
 readme = "README.md"
+packages = [{include = "app"}]
 
 [build-system]
 requires = ["poetry-core"]
@@ -11,3 +12,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+discord-py = "^2.3.2"

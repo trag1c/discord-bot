@@ -26,7 +26,7 @@
         # Our repo overlay
         (import ./nix/overlay.nix)
 
-        # Other overlays
+        # poetry2nix overlay
         inputs.poetry2nix.overlays.default
       ];
 

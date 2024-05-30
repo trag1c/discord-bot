@@ -25,7 +25,7 @@ in mkShell rec {
     # None yet
   ];
 
-  buildInputs = rpathLibs;# ++ [ pythonApp.devEnv ];
+  buildInputs = rpathLibs ++ [ pythonApp.devEnv ];
 
   # This should be set onto the rpath of the ghostty binary if you want
   # it to be "portable" across the system.
