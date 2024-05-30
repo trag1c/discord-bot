@@ -29,7 +29,7 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
             return
 
         if member.get_role(config.github_role_id) is not None:
-            await interaction.response.send(tester_link_already, ephemeral=True)
+            await interaction.response.send_message(tester_link_already, ephemeral=True)
             return
 
         await member.add_roles(
