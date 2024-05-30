@@ -20,18 +20,18 @@ async def on_message(message):
         return
 
     # Special trigger command to request an invite.
-    trigger = "I WANT GHOSTTY"
-    if message.content.strip().upper() == trigger:
-        if message.guild is None:
-            await message.channel.send("Tell me you want me in the Ghostty server!")
-            return
-
-        if message.content.strip() == trigger:
-            # TODO
-            return
-
-        await message.channel.send("Louder. LOUDER!!")
-        return
+    # trigger = "I WANT GHOSTTY"
+    # if message.content.strip().upper() == trigger:
+    #     if message.guild is None:
+    #         await message.channel.send("Tell me you want me in the Ghostty server!")
+    #         return
+    #
+    #     if message.content.strip() == trigger:
+    #         # TODO
+    #         return
+    #
+    #     await message.channel.send("Louder. LOUDER!!")
+    #     return
 
     # Unknow message, try commands
     await bot.process_commands(message)
