@@ -1,0 +1,3 @@
+# Ghostty Discord Bot
+
+👻
