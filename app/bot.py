@@ -33,6 +33,12 @@ async def on_message(message):
     #     await message.channel.send("Louder. LOUDER!!")
     #     return
 
+    # Simple test
+    if message.guild is None:
+        if message.content == "ping":
+            await message.author.send("pong")
+            return
+
     # Unknow message, try commands
     await bot.process_commands(message)
 
