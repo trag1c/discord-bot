@@ -1,8 +1,10 @@
 import traceback
 
 import discord
+import github
 
 from .. import config
+from ..github import g
 
 class TesterWelcome(discord.ui.View):
     """The view shown to new testers."""
@@ -28,12 +30,31 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
             await interaction.response.send_message('You must be a member of the Ghostty discord server.', ephemeral=True)
             return
 
+        # If the user already has the github role it means they already linked.
         if member.get_role(config.github_role_id) is not None:
             await interaction.response.send_message(tester_link_already, ephemeral=True)
             return
 
-        # TODO: invite the user to the github org here
+        # Get and verify the GitHub user
+        try:
+            user = g.get_user(self.username.value)
+        except github.GithubException.UnknownObjectException:
+            await interaction.response.send_message(f"GitHub user '{self.username.value}' not found.", ephemeral=True)
+            return
 
+        # If the user is already a member of the org, they're already linked.
+        try:
+            user.get_organization_membership(config.github_org)
+            await interaction.response.send_message('You are already a member of the Ghostty GitHub organization.', ephemeral=True)
+        except github.GithubException.UnknownObjectException:
+            # This is good, they aren't a member yet.
+            org = g.get_organization(config.github_org)
+            team = org.get_team_by_slug(config.github_tester_team)
+            org.invite_user(user=user, role='direct_member', teams=[team])
+
+        # Add the github role. We do this even if the user was already
+        # previously a member of the org so that they don't link another
+        # account.
         await member.add_roles(
             discord.Object(config.github_role_id),
             reason="tester linked GitHub account",
