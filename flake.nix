@@ -27,9 +27,7 @@
         (import ./nix/overlay.nix)
 
         # Other overlays
-        (final: prev: {
-          poetry2nix = inputs.poetry2nix.legacyPackages.${prev.system};
-        })
+        inputs.poetry2nix.overlays.default
       ];
 
       # Our supported systems are the same supported systems as the Zig binaries
