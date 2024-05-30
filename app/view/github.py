@@ -32,6 +32,8 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
             await interaction.response.send_message(tester_link_already, ephemeral=True)
             return
 
+        # TODO: invite the user to the github org here
+
         await member.add_roles(
             discord.Object(config.github_role_id),
             reason="tester linked GitHub account",
