@@ -89,6 +89,14 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
         ephemeral=True)
 
 
+@bot.tree.command(name='invite', description='Invite a user to the beta.')
+async def invite(interaction: discord.Interaction, member: discord.Member):
+    """
+    Same as invite_member but via a slash command.
+    """
+    await invite_member(interaction, member)
+
+
 @bot.tree.command(name='accept-invite', description='Accept a pending tester invite.')
 async def accept_invite(interaction: discord.Interaction):
     """
