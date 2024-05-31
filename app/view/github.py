@@ -24,14 +24,8 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        guild = interaction.client.get_guild(config.guild_id)
-        member = guild.get_member(interaction.user.id)
-        if member is None:
-            await interaction.response.send_message('You must be a member of the Ghostty discord server.', ephemeral=True)
-            return
-
         # If the user already has the github role it means they already linked.
-        if member.get_role(config.github_role_id) is not None:
+        if interaction.user.get_role(config.github_role_id) is not None:
             await interaction.response.send_message(tester_link_already, ephemeral=True)
             return
 
@@ -55,17 +49,33 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
         # Add the github role. We do this even if the user was already
         # previously a member of the org so that they don't link another
         # account.
-        await member.add_roles(
+        await interaction.user.add_roles(
             discord.Object(config.github_role_id),
             reason="tester linked GitHub account",
         )
 
         await interaction.response.send_message(tester_link_message, ephemeral=True)
 
+
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
         traceback.print_exception(type(error), error, error.__traceback__)
 
+
+new_tester_dm = """
+Hello! You've been invited to help test Ghostty. Thank you! To accept
+the invite, please run the `/accept-invite` command in the Ghostty server.
+"""
+
+tester_accept_invite = """
+Hello! You've been invited to help test Ghostty. Thank you. Please press the
+button below to provide your GitHub username. This will allow us to invite
+you to the GitHub organization and give you access to the repository.
+
+If the command below fails or you forget to complete this step, you can
+always trigger this message again by sending a DM to this bot with the
+message "!github".
+""".strip()
 
 tester_link_already = """
 You've already linked a GitHub account. If you need to change it,

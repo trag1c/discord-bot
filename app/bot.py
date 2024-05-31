@@ -44,56 +44,67 @@ async def on_message(message):
 
 
 @bot.command()
-async def github(ctx: commands.Context):
-    # Only allow this command in a guild
-    if ctx.guild is None:
-        await ctx.author.send("Send the command in the Ghostty server.")
+@commands.is_owner()
+async def sync(ctx: commands.Context):
+    """
+    Syncs all global commands.
+    """
+    await bot.tree.sync()
+    await ctx.author.send("Command tree synced.")
+
+
+@bot.tree.context_menu(name='Invite to Beta')
+async def invite_member(interaction: discord.Interaction, member: discord.Member):
+    """
+    Adds a context menu item to a user to invite them to the beta.
+
+    This can only be invoked by a mod.
+    """
+    if interaction.user.get_role(config.mod_role_id) is None:
+        await interaction.response.send_message(
+            "You need to be a mod to add testers.",
+            ephemeral=True)
         return
 
-    # Verify the author is a tester
-    if ctx.author.get_role(config.tester_role_id) is None:
-        await ctx.author.send("You must be a tester to link your GitHub account.")
+    if member.bot:
+        await interaction.response.send_message(
+            "Bots can't be testers.",
+            ephemeral=True)
         return
+
+    await member.add_roles(
+        discord.Object(config.tester_role_id),
+        reason="invite to beta context menu",
+    )
+    await member.send(view.new_tester_dm)
+
+    await interaction.response.send_message(
+        f"Added {member} as a tester.",
+        ephemeral=True)
+
+
+@bot.tree.command(name='accept-invite', description='Accept a pending tester invite.')
+async def accept_invite(interaction: discord.Interaction):
+    """
+    Accept the tester invite. This should be invoked by someone who was
+    invited to the beta to complete setup with GitHub.
+    """
+    # Verify the author is a tester
+    if interaction.user.get_role(config.tester_role_id) is None:
+        await interaction.response.send_message(
+            "You haven't been invited to be a tester yet.",
+            ephemeral=True)
+        return
+
+    # If the user already has the github role it means they already linked.
+    # if interaction.user.get_role(config.github_role_id) is not None:
+    #     await interaction.response.send_message(
+    #         view.tester_link_already,
+    #         ephemeral=True)
+    #     return
 
     # Send the tester link view
-    await ctx.author.send(new_tester_message, view=view.TesterWelcome())
-
-
-@bot.command(name='add-tester')
-async def add_tester(ctx: commands.Context):
-    # Only allow this command in a guild
-    if ctx.guild is None:
-        return
-
-    if ctx.author.get_role(config.mod_role_id) is None:
-        await ctx.author.send("You need to be a mod to add testers.")
-        return
-
-    # For each mentioned user, we want to add the tester role. After
-    # adding the tester role we also DM them instructions on how to
-    # continue setting up their account.
-    count = 0
-    for user in ctx.message.mentions:
-        if user == bot.user:
-            continue
-
-        await user.add_roles(
-            discord.Object(config.tester_role_id),
-            reason="add-tester command",
-        )
-
-        await user.send(new_tester_message, view=view.TesterWelcome())
-
-        count += 1
-
-    await ctx.author.send(f"Added {count} testers.")
-
-new_tester_message = """
-Hello! You've been invited to help test Ghostty. Thank you. Please press the
-button below to provide your GitHub username. This will allow us to invite
-you to the GitHub organization and give you access to the repository.
-
-If the command below fails or you forget to complete this step, you can
-always trigger this message again by sending a DM to this bot with the
-message "!github".
-""".strip()
+    await interaction.response.send_message(
+        view.tester_accept_invite,
+        view=view.TesterWelcome(),
+        ephemeral=True)
