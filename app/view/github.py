@@ -4,7 +4,7 @@ import discord
 import github
 
 from .. import config
-from ..github import g, g_legacy
+from ..github import g
 
 class TesterWelcome(discord.ui.View):
     """The view shown to new testers."""
@@ -94,56 +94,6 @@ class TesterLinkCollab(discord.ui.Modal, title='Link GitHub'):
         # If the user is already a member of the org, they're already linked.
         repo = g.get_repo("ghostty-org/ghostty")
         repo.add_to_collaborators(user, permission='pull')
-
-        # Add the github role. We do this even if the user was already
-        # previously a member of the org so that they don't link another
-        # account.
-        await interaction.user.add_roles(
-            discord.Object(config.github_role_id),
-            reason="tester linked GitHub account",
-        )
-
-        await interaction.followup.send(tester_link_message, ephemeral=True)
-
-
-    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
-        await interaction.followup.send('Oops! Something went wrong.', ephemeral=True)
-        traceback.print_exception(type(error), error, error.__traceback__)
-
-
-class TesterLinkLegacy(discord.ui.Modal, title='Link GitHub'):
-    """
-    The modal shown to link a GitHub account.
-
-    This is the legacy command that will add them to collaborators instead of
-    the GitHub organization.
-    """
-
-    username = discord.ui.TextInput(
-        label='GitHub Username',
-        placeholder='mitchellh',
-        required=True,
-    )
-
-    async def on_submit(self, interaction: discord.Interaction):
-        # Defer since we're going to do a bunch of slow stuff.
-        await interaction.response.defer(ephemeral=True, thinking=True)
-
-        # If the user already has the github role it means they already linked.
-        if interaction.user.get_role(config.github_role_id) is not None:
-            await interaction.followup.send(tester_link_already, ephemeral=True)
-            return
-
-        # Get and verify the GitHub user
-        try:
-            user = g_legacy.get_user(self.username.value)
-        except github.UnknownObjectException:
-            await interaction.followup.send(f"GitHub user '{self.username.value}' not found.", ephemeral=True)
-            return
-
-        # If the user is already a member of the org, they're already linked.
-        repo = g_legacy.get_repo("mitchellh/ghostty")
-        repo.add_to_collaborators(user)
 
         # Add the github role. We do this even if the user was already
         # previously a member of the org so that they don't link another
