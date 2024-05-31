@@ -72,7 +72,7 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
             ephemeral=True)
         return
 
-    if interaction.user.get_role(config.tester_role_id) is not None:
+    if member.get_role(config.tester_role_id) is not None:
         await interaction.response.send_message(
             "This user is already a tester.",
             ephemeral=True)
