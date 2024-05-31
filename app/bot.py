@@ -103,6 +103,12 @@ async def accept_invite(interaction: discord.Interaction):
     Accept the tester invite. This should be invoked by someone who was
     invited to the beta to complete setup with GitHub.
     """
+    if not isinstance(interaction.user, discord.Member):
+        await interaction.response.send_message(
+            "This command must be run from the Ghostty server, not a DM.",
+            ephemeral=True)
+        return
+
     # Verify the author is a tester
     if interaction.user.get_role(config.tester_role_id) is None:
         await interaction.response.send_message(
