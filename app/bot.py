@@ -94,7 +94,7 @@ async def invite(interaction: discord.Interaction, member: discord.Member):
     """
     Same as invite_member but via a slash command.
     """
-    await invite_member(interaction, member)
+    await invite_member.callback(interaction, member)
 
 
 @bot.tree.command(name='accept-invite', description='Accept a pending tester invite.')
