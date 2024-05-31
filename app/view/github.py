@@ -36,7 +36,7 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
         # Get and verify the GitHub user
         try:
             user = g.get_user(self.username.value)
-        except github.GithubException.UnknownObjectException:
+        except github.UnknownObjectException:
             await interaction.followup.send(f"GitHub user '{self.username.value}' not found.", ephemeral=True)
             return
 
@@ -44,7 +44,7 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
         try:
             user.get_organization_membership(config.github_org)
             await interaction.followup.send('You are already a member of the Ghostty GitHub organization.', ephemeral=True)
-        except github.GithubException.UnknownObjectException:
+        except github.UnknownObjectException:
             # This is good, they aren't a member yet.
             org = g.get_organization(config.github_org)
             team = org.get_team_by_slug(config.github_tester_team)
@@ -92,7 +92,7 @@ class TesterLinkLegacy(discord.ui.Modal, title='Link GitHub'):
         # Get and verify the GitHub user
         try:
             user = g_legacy.get_user(self.username.value)
-        except github.GithubException.UnknownObjectException:
+        except github.UnknownObjectException:
             await interaction.followup.send(f"GitHub user '{self.username.value}' not found.", ephemeral=True)
             return
 
