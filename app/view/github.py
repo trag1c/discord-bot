@@ -127,8 +127,7 @@ button below to provide your GitHub username. This will allow us to invite
 you to the GitHub organization and give you access to the repository.
 
 If the command below fails or you forget to complete this step, you can
-always trigger this message again by sending a DM to this bot with the
-message "!github".
+always trigger this message again by running the `/accept-invite` command.
 """.strip()
 
 tester_link_already = """
