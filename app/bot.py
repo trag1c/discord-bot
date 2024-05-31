@@ -62,13 +62,19 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
     """
     if interaction.user.get_role(config.mod_role_id) is None:
         await interaction.response.send_message(
-            "You need to be a mod to add testers.",
+            "You need to be an admin to add testers.",
             ephemeral=True)
         return
 
     if member.bot:
         await interaction.response.send_message(
             "Bots can't be testers.",
+            ephemeral=True)
+        return
+
+    if interaction.user.get_role(config.tester_role_id) is not None:
+        await interaction.response.send_message(
+            "This user is already a tester.",
             ephemeral=True)
         return
 
