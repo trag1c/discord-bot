@@ -1,5 +1,6 @@
 import os
 
+bot_token = os.environ['BOT_TOKEN']
 github_token = os.environ['GITHUB_TOKEN']
 github_legacy_token = os.environ['GITHUB_LEGACY_TOKEN']
 github_org = os.environ['GITHUB_ORG']
