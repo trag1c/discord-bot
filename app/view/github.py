@@ -19,7 +19,7 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
 
     username = discord.ui.TextInput(
         label='GitHub Username',
-        placeholder='@mitchellh',
+        placeholder='mitchellh',
         required=True,
     )
 
