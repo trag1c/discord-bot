@@ -54,6 +54,7 @@ async def sync(ctx: commands.Context):
 
 
 @bot.tree.context_menu(name='Invite to Beta')
+@commands.guild_only()
 async def invite_member(interaction: discord.Interaction, member: discord.Member):
     """
     Adds a context menu item to a user to invite them to the beta.
@@ -98,17 +99,12 @@ async def invite(interaction: discord.Interaction, member: discord.Member):
 
 
 @bot.tree.command(name='accept-invite', description='Accept a pending tester invite.')
+@commands.guild_only()
 async def accept_invite(interaction: discord.Interaction):
     """
     Accept the tester invite. This should be invoked by someone who was
     invited to the beta to complete setup with GitHub.
     """
-    if not isinstance(interaction.user, discord.Member):
-        await interaction.response.send_message(
-            "This command must be run from the Ghostty server, not a DM.",
-            ephemeral=True)
-        return
-
     # Verify the author is a tester
     if interaction.user.get_role(config.tester_role_id) is None:
         await interaction.response.send_message(
