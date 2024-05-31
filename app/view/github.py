@@ -4,14 +4,15 @@ import discord
 import github
 
 from .. import config
-from ..github import g
+from ..github import g, g_legacy
 
 class TesterWelcome(discord.ui.View):
     """The view shown to new testers."""
 
     @discord.ui.button(label='Accept and Link GitHub')
     async def link(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_modal(TesterLink())
+        #await interaction.response.send_modal(TesterLink())
+        await interaction.response.send_modal(TesterLinkLegacy())
 
 
 class TesterLink(discord.ui.Modal, title='Link GitHub'):
@@ -24,22 +25,25 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
+        # Defer since we're going to do a bunch of slow stuff.
+        await interaction.response.defer(ephemeral=True, thinking=True)
+
         # If the user already has the github role it means they already linked.
         if interaction.user.get_role(config.github_role_id) is not None:
-            await interaction.response.send_message(tester_link_already, ephemeral=True)
+            await interaction.followup.send(tester_link_already, ephemeral=True)
             return
 
         # Get and verify the GitHub user
         try:
             user = g.get_user(self.username.value)
         except github.GithubException.UnknownObjectException:
-            await interaction.response.send_message(f"GitHub user '{self.username.value}' not found.", ephemeral=True)
+            await interaction.followup.send(f"GitHub user '{self.username.value}' not found.", ephemeral=True)
             return
 
         # If the user is already a member of the org, they're already linked.
         try:
             user.get_organization_membership(config.github_org)
-            await interaction.response.send_message('You are already a member of the Ghostty GitHub organization.', ephemeral=True)
+            await interaction.followup.send('You are already a member of the Ghostty GitHub organization.', ephemeral=True)
         except github.GithubException.UnknownObjectException:
             # This is good, they aren't a member yet.
             org = g.get_organization(config.github_org)
@@ -54,11 +58,61 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
             reason="tester linked GitHub account",
         )
 
-        await interaction.response.send_message(tester_link_message, ephemeral=True)
+        await interaction.followup.send(tester_link_message, ephemeral=True)
 
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
-        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+        await interaction.followup.send('Oops! Something went wrong.', ephemeral=True)
+        traceback.print_exception(type(error), error, error.__traceback__)
+
+
+class TesterLinkLegacy(discord.ui.Modal, title='Link GitHub'):
+    """
+    The modal shown to link a GitHub account.
+
+    This is the legacy command that will add them to collaborators instead of
+    the GitHub organization.
+    """
+
+    username = discord.ui.TextInput(
+        label='GitHub Username',
+        placeholder='mitchellh',
+        required=True,
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        # Defer since we're going to do a bunch of slow stuff.
+        await interaction.response.defer(ephemeral=True, thinking=True)
+
+        # If the user already has the github role it means they already linked.
+        if interaction.user.get_role(config.github_role_id) is not None:
+            await interaction.followup.send(tester_link_already, ephemeral=True)
+            return
+
+        # Get and verify the GitHub user
+        try:
+            user = g_legacy.get_user(self.username.value)
+        except github.GithubException.UnknownObjectException:
+            await interaction.followup.send(f"GitHub user '{self.username.value}' not found.", ephemeral=True)
+            return
+
+        # If the user is already a member of the org, they're already linked.
+        repo = g_legacy.get_repo("mitchellh/ghostty")
+        repo.add_to_collaborators(user)
+
+        # Add the github role. We do this even if the user was already
+        # previously a member of the org so that they don't link another
+        # account.
+        await interaction.user.add_roles(
+            discord.Object(config.github_role_id),
+            reason="tester linked GitHub account",
+        )
+
+        await interaction.followup.send(tester_link_message, ephemeral=True)
+
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        await interaction.followup.send('Oops! Something went wrong.', ephemeral=True)
         traceback.print_exception(type(error), error, error.__traceback__)
 
 

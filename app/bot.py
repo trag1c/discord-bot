@@ -97,11 +97,11 @@ async def accept_invite(interaction: discord.Interaction):
         return
 
     # If the user already has the github role it means they already linked.
-    # if interaction.user.get_role(config.github_role_id) is not None:
-    #     await interaction.response.send_message(
-    #         view.tester_link_already,
-    #         ephemeral=True)
-    #     return
+    if interaction.user.get_role(config.github_role_id) is not None:
+        await interaction.response.send_message(
+            view.tester_link_already,
+            ephemeral=True)
+        return
 
     # Send the tester link view
     await interaction.response.send_message(
