@@ -175,4 +175,4 @@ async def issue(interaction: discord.Interaction, number: int):
     # Send issue info
     await interaction.response.send_message(
         f"**Issue #{issue.number}:** {issue.title}\n{issue.html_url}",
-        ephemeral=True)
+    )
