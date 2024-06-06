@@ -1,6 +1,10 @@
 import discord
+import github
 from discord.ext import commands
+
 from . import config, view
+from .github import g
+
 
 # Initialize our bot
 intents = discord.Intents.default()
@@ -133,4 +137,42 @@ async def accept_invite(interaction: discord.Interaction):
     await interaction.response.send_message(
         view.tester_accept_invite,
         view=view.TesterWelcome(),
+        ephemeral=True)
+
+@bot.tree.command(name='issue', description='Link a GitHub issue')
+async def issue(interaction: discord.Interaction, number: int):
+    """
+    Link a GitHub issue with a certain number.
+    """
+    if not isinstance(interaction.user, discord.Member):
+        await interaction.response.send_message(
+            "This command must be run from the Ghostty server, not a DM.",
+            ephemeral=True)
+        return
+
+    # Verify the author is a tester
+    if interaction.user.get_role(config.tester_role_id) is None:
+        await interaction.response.send_message(
+            "Only testers may link issues.",
+            ephemeral=True)
+        return
+
+    # Get the repository
+    repo = g.get_repo(
+        f"{config.github_org}/{config.github_repo}",
+        lazy=True,
+    )
+
+    # Get the issue
+    try:
+        issue = repo.get_issue(number)
+    except github.UnknownObjectException:
+        await interaction.response.send_message(
+            "Issue not found",
+            ephemeral=True)
+        return
+
+    # Send issue info
+    await interaction.response.send_message(
+        f"**Issue #{issue.number}:** {issue.title}\n{issue.html_url}"
         ephemeral=True)

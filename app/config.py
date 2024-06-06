@@ -3,6 +3,7 @@ import os
 bot_token = os.environ['BOT_TOKEN']
 github_token = os.environ['GITHUB_TOKEN']
 github_org = os.environ['GITHUB_ORG']
+github_repo = os.environ['GITHUB_REPO']
 github_tester_team = os.environ['GITHUB_TESTER_TEAM']
 guild_id = int(os.environ['BOT_GUILD_ID'])
 mod_role_id = int(os.environ['BOT_MOD_ROLE_ID'])
