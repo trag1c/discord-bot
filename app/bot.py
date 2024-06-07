@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-from . import config, view
-from .issues import ISSUE_REGEX, handle_issues
+from app import config, view
+from app.issues import ISSUE_REGEX, handle_issues
 
 # Initialize our bot
 intents = discord.Intents.default()
@@ -37,10 +37,9 @@ async def on_message(message):
     #     return
 
     # Simple test
-    if message.guild is None:
-        if message.content == "ping":
-            await message.author.send("pong")
-            return
+    if message.guild is None and message.content == "ping":
+        await message.author.send("pong")
+        return
 
     # Look for issue numbers and link them
     if ISSUE_REGEX.search(message.content):

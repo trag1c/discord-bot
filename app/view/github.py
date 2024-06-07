@@ -3,8 +3,8 @@ import traceback
 import discord
 import github
 
-from .. import config
-from ..github import g
+from app import config
+from app.github import g
 
 
 class TesterWelcome(discord.ui.View):

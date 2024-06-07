@@ -1,9 +1,10 @@
 import re
 
-from discord import Message
 import github
-from . import config
-from .github import g
+from discord import Message
+
+from app import config
+from app.github import g
 
 ISSUE_REGEX = re.compile(r"#(\d+)")
 ISSUE_TEMPLATE = "**Issue #{issue.number}:** {issue.title}\n{issue.html_url}\n"
