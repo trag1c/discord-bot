@@ -7,7 +7,7 @@ from app import config
 from app.github import g
 
 ISSUE_REGEX = re.compile(r"#(\d+)")
-ISSUE_TEMPLATE = "**Issue #{issue.number}:** {issue.title}\n{issue.html_url}\n"
+ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
 
 
 async def handle_issues(message: Message) -> None:
@@ -33,6 +33,7 @@ async def handle_issues(message: Message) -> None:
             issue = repo.get_issue(int(match[1]))
         except github.UnknownObjectException:
             continue
-        issues.append(ISSUE_TEMPLATE.format(issue=issue))
+        kind = "Pull Request" if issue.pull_request else "Issue"
+        issues.append(ISSUE_TEMPLATE.format(kind=kind, issue=issue))
 
     await message.channel.send("\n".join(issues))
