@@ -6,20 +6,21 @@ import github
 from .. import config
 from ..github import g
 
+
 class TesterWelcome(discord.ui.View):
     """The view shown to new testers."""
 
-    @discord.ui.button(label='Accept and Link GitHub')
+    @discord.ui.button(label="Accept and Link GitHub")
     async def link(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(TesterLink())
 
 
-class TesterLink(discord.ui.Modal, title='Link GitHub'):
+class TesterLink(discord.ui.Modal, title="Link GitHub"):
     """The modal shown to link a GitHub account."""
 
     username = discord.ui.TextInput(
-        label='GitHub Username',
-        placeholder='mitchellh',
+        label="GitHub Username",
+        placeholder="mitchellh",
         required=True,
     )
 
@@ -36,18 +37,23 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
         try:
             user = g.get_user(self.username.value)
         except github.UnknownObjectException:
-            await interaction.followup.send(f"GitHub user '{self.username.value}' not found.", ephemeral=True)
+            await interaction.followup.send(
+                f"GitHub user '{self.username.value}' not found.", ephemeral=True
+            )
             return
 
         # If the user is already a member of the org, they're already linked.
         try:
             user.get_organization_membership(config.github_org)
-            await interaction.followup.send('You are already a member of the Ghostty GitHub organization.', ephemeral=True)
+            await interaction.followup.send(
+                "You are already a member of the Ghostty GitHub organization.",
+                ephemeral=True,
+            )
         except github.UnknownObjectException:
             # This is good, they aren't a member yet.
             org = g.get_organization(config.github_org)
             team = org.get_team_by_slug(config.github_tester_team)
-            org.invite_user(user=user, role='direct_member', teams=[team])
+            org.invite_user(user=user, role="direct_member", teams=[team])
 
         # Add the github role. We do this even if the user was already
         # previously a member of the org so that they don't link another
@@ -59,9 +65,10 @@ class TesterLink(discord.ui.Modal, title='Link GitHub'):
 
         await interaction.followup.send(tester_link_message, ephemeral=True)
 
-
-    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
-        await interaction.followup.send('Oops! Something went wrong.', ephemeral=True)
+    async def on_error(
+        self, interaction: discord.Interaction, error: Exception
+    ) -> None:
+        await interaction.followup.send("Oops! Something went wrong.", ephemeral=True)
         traceback.print_exception(type(error), error, error.__traceback__)
 
 
