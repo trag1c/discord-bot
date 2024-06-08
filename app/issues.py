@@ -1,5 +1,6 @@
 import re
 
+import discord
 import github
 from discord import Message
 
