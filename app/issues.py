@@ -36,4 +36,4 @@ async def handle_issues(message: Message) -> None:
         kind = "Pull Request" if issue.pull_request else "Issue"
         issues.append(ISSUE_TEMPLATE.format(kind=kind, issue=issue))
 
-    await message.channel.send("\n".join(issues))
+    await message.reply("\n".join(issues), mention_author=False)
