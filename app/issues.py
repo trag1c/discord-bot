@@ -11,15 +11,14 @@ ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
 
 
 async def handle_issues(message: Message) -> None:
-    if message.guild is None:
+    if not isinstance(message.author, discord.Member):
         await message.channel.send(
             "You can only mention issues/PRs in the Ghostty server."
         )
         return
 
-    # Check if the user is a tester
-    member = message.guild.get_member(message.author.id)
-    if member is None or member.get_role(config.tester_role_id) is None:
+    # Check if the user is a tester.
+    if message.author.get_role(config.tester_role_id) is None:
         return
 
     repo = g.get_repo(
