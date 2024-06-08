@@ -1,9 +1,7 @@
-import discord
 import sentry_sdk
-from discord.ext import commands
 
-from . import config
-from .bot import bot
+from app import config
+from app.bot import bot
 
 if config.sentry_dsn is not None:
     sentry_sdk.init(

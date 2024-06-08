@@ -6,6 +6,12 @@ authors = ["Mitchell Hashimoto <m@mitchellh.com>"]
 readme = "README.md"
 packages = [{include = "app"}]
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.8"
+
+[tool.ruff.lint]
+extend-select = ["I", "TID252", "SIM"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
