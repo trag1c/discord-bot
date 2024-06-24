@@ -7,7 +7,7 @@ from discord import Message
 from app import config
 from app.github import g
 
-ISSUE_REGEX = re.compile(r"#(\d+)")
+ISSUE_REGEX = re.compile(r"#(\d+)\b")
 ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
 
 
@@ -27,13 +27,13 @@ async def handle_issues(message: Message) -> None:
         lazy=True,
     )
 
-    issues = []
+    issues = set()
     for match in ISSUE_REGEX.finditer(message.content):
         try:
             issue = repo.get_issue(int(match[1]))
         except github.UnknownObjectException:
             continue
         kind = "Pull Request" if issue.pull_request else "Issue"
-        issues.append(ISSUE_TEMPLATE.format(kind=kind, issue=issue))
+        issues.add(ISSUE_TEMPLATE.format(kind=kind, issue=issue))
 
     await message.reply("\n".join(issues), mention_author=False)
