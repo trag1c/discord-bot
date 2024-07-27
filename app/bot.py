@@ -45,6 +45,10 @@ async def on_message(message):
     if ISSUE_REGEX.search(message.content):
         await handle_issues(message)
 
+    # Delete non-image messages in #showcase
+    if message.channel.id == config.showcase_channel_id and not message.attachments:
+        await message.delete()
+
     # Unknow message, try commands
     await bot.process_commands(message)
 
