@@ -12,12 +12,12 @@ bot = commands.Bot(command_prefix=commands.when_mentioned_or("!"), intents=inten
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     print(f"Bot logged on as {bot.user}!")
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message: discord.Message) -> None:
     # Ignore our own messages
     if message.author == bot.user:
         return
@@ -55,7 +55,7 @@ async def on_message(message):
 
 @bot.command()
 @commands.is_owner()
-async def sync(ctx: commands.Context):
+async def sync(ctx: commands.Context) -> None:
     """
     Syncs all global commands.
     """
@@ -64,7 +64,9 @@ async def sync(ctx: commands.Context):
 
 
 @bot.tree.context_menu(name="Invite to Beta")
-async def invite_member(interaction: discord.Interaction, member: discord.Member):
+async def invite_member(
+    interaction: discord.Interaction, member: discord.Member
+) -> None:
     """
     Adds a context menu item to a user to invite them to the beta.
 
@@ -107,7 +109,7 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
 
 
 @bot.tree.command(name="invite", description="Invite a user to the beta.")
-async def invite(interaction: discord.Interaction, member: discord.Member):
+async def invite(interaction: discord.Interaction, member: discord.Member) -> None:
     """
     Same as invite_member but via a slash command.
     """
@@ -115,7 +117,7 @@ async def invite(interaction: discord.Interaction, member: discord.Member):
 
 
 @bot.tree.command(name="accept-invite", description="Accept a pending tester invite.")
-async def accept_invite(interaction: discord.Interaction):
+async def accept_invite(interaction: discord.Interaction) -> None:
     """
     Accept the tester invite. This should be invoked by someone who was
     invited to the beta to complete setup with GitHub.

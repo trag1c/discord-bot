@@ -11,7 +11,9 @@ class TesterWelcome(discord.ui.View):
     """The view shown to new testers."""
 
     @discord.ui.button(label="Accept and Link GitHub")
-    async def link(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def link(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ) -> None:
         await interaction.response.send_modal(TesterLink())
 
 
@@ -24,7 +26,7 @@ class TesterLink(discord.ui.Modal, title="Link GitHub"):
         required=True,
     )
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction) -> None:
         # Defer since we're going to do a bunch of slow stuff.
         await interaction.response.defer(ephemeral=True, thinking=True)
 
