@@ -29,8 +29,8 @@ class TesterLink(discord.ui.Modal, title="Link GitHub"):
         await interaction.response.defer(ephemeral=True, thinking=True)
 
         # If the user already has the github role it means they already linked.
-        if interaction.user.get_role(config.github_role_id) is not None:
-            await interaction.followup.send(tester_link_already, ephemeral=True)
+        if interaction.user.get_role(config.GITHUB_ROLE_ID) is not None:
+            await interaction.followup.send(TESTER_LINK_ALREADY, ephemeral=True)
             return
 
         # Get and verify the GitHub user
@@ -44,26 +44,26 @@ class TesterLink(discord.ui.Modal, title="Link GitHub"):
 
         # If the user is already a member of the org, they're already linked.
         try:
-            user.get_organization_membership(config.github_org)
+            user.get_organization_membership(config.GITHUB_ORG)
             await interaction.followup.send(
                 "You are already a member of the Ghostty GitHub organization.",
                 ephemeral=True,
             )
         except github.UnknownObjectException:
             # This is good, they aren't a member yet.
-            org = g.get_organization(config.github_org)
-            team = org.get_team_by_slug(config.github_tester_team)
+            org = g.get_organization(config.GITHUB_ORG)
+            team = org.get_team_by_slug(config.GITHUB_TESTER_TEAM)
             org.invite_user(user=user, role="direct_member", teams=[team])
 
         # Add the github role. We do this even if the user was already
         # previously a member of the org so that they don't link another
         # account.
         await interaction.user.add_roles(
-            discord.Object(config.github_role_id),
+            discord.Object(config.GITHUB_ROLE_ID),
             reason="tester linked GitHub account",
         )
 
-        await interaction.followup.send(tester_link_message, ephemeral=True)
+        await interaction.followup.send(TESTER_LINK_MESSAGE, ephemeral=True)
 
     async def on_error(
         self, interaction: discord.Interaction, error: Exception
@@ -72,12 +72,12 @@ class TesterLink(discord.ui.Modal, title="Link GitHub"):
         traceback.print_exception(type(error), error, error.__traceback__)
 
 
-new_tester_dm = """
+NEW_TESTER_DM = """
 Hello! You've been invited to help test Ghostty. Thank you! To accept
 the invite, please run the `/accept-invite` command in the Ghostty server.
 """
 
-tester_accept_invite = """
+TESTER_ACCEPT_INVITE = """
 Hello! You've been invited to help test Ghostty. Thank you. Please press the
 button below to provide your GitHub username. This will allow us to invite
 you to the GitHub organization and give you access to the repository.
@@ -86,12 +86,12 @@ If the command below fails or you forget to complete this step, you can
 always trigger this message again by running the `/accept-invite` command.
 """.strip()
 
-tester_link_already = """
+TESTER_LINK_ALREADY = """
 You've already linked a GitHub account. If you need to change it,
 please contact a mod.
 """.strip()
 
-tester_link_message = """
+TESTER_LINK_MESSAGE = """
 Please read the README and the README_TESTERS.md file. Details on what to expect,
 how to download/configure Ghostty, and a small FAQ are all present. You're an early
 tester so I'm going to hold you to a higher bar and expect you'll read! Thanks. 🥰

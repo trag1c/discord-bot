@@ -46,7 +46,7 @@ async def on_message(message):
         await handle_issues(message)
 
     # Delete non-image messages in #showcase
-    if message.channel.id == config.showcase_channel_id and not message.attachments:
+    if message.channel.id == config.SHOWCASE_CHANNEL_ID and not message.attachments:
         await message.delete()
 
     # Unknow message, try commands
@@ -77,7 +77,7 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
         )
         return
 
-    if interaction.user.get_role(config.mod_role_id) is None:
+    if interaction.user.get_role(config.MOD_ROLE_ID) is None:
         await interaction.response.send_message(
             "You need to be an admin to add testers.", ephemeral=True
         )
@@ -89,14 +89,14 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
         )
         return
 
-    if member.get_role(config.tester_role_id) is not None:
+    if member.get_role(config.TESTER_ROLE_ID) is not None:
         await interaction.response.send_message(
             "This user is already a tester.", ephemeral=True
         )
         return
 
     await member.add_roles(
-        discord.Object(config.tester_role_id),
+        discord.Object(config.TESTER_ROLE_ID),
         reason="invite to beta context menu",
     )
     await member.send(view.new_tester_dm)
@@ -128,14 +128,14 @@ async def accept_invite(interaction: discord.Interaction):
         return
 
     # Verify the author is a tester
-    if interaction.user.get_role(config.tester_role_id) is None:
+    if interaction.user.get_role(config.TESTER_ROLE_ID) is None:
         await interaction.response.send_message(
             "You haven't been invited to be a tester yet.", ephemeral=True
         )
         return
 
     # If the user already has the github role it means they already linked.
-    if interaction.user.get_role(config.github_role_id) is not None:
+    if interaction.user.get_role(config.GITHUB_ROLE_ID) is not None:
         await interaction.response.send_message(
             view.tester_link_already, ephemeral=True
         )
