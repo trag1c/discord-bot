@@ -9,5 +9,5 @@ GUILD_ID = int(os.environ['BOT_GUILD_ID'])
 MOD_ROLE_ID = int(os.environ['BOT_MOD_ROLE_ID'])
 GITHUB_ROLE_ID = int(os.environ['BOT_GITHUB_ROLE_ID'])
 TESTER_ROLE_ID = int(os.environ['BOT_TESTER_ROLE_ID'])
-SENTRY_DSN = os.environ.get('SENTRY_DSN')
+SENTRY_DSN = os.getenv('SENTRY_DSN')
 SHOWCASE_CHANNEL_ID = os.environ['BOT_SHOWCASE_CHANNEL_ID']
