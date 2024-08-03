@@ -1,15 +1,15 @@
 from app.view.github import (
+    NEW_TESTER_DM,
+    TESTER_ACCEPT_INVITE,
+    TESTER_LINK_ALREADY,
     TesterLink,
     TesterWelcome,
-    new_tester_dm,
-    tester_accept_invite,
-    tester_link_already,
 )
 
 __all__ = (
+    "NEW_TESTER_DM",
+    "TESTER_ACCEPT_INVITE",
+    "TESTER_LINK_ALREADY",
     "TesterLink",
     "TesterWelcome",
-    "new_tester_dm",
-    "tester_accept_invite",
-    "tester_link_already",
 )

@@ -19,11 +19,11 @@ async def handle_issues(message: Message) -> None:
         return
 
     # Check if the user is a tester.
-    if message.author.get_role(config.tester_role_id) is None:
+    if message.author.get_role(config.TESTER_ROLE_ID) is None:
         return
 
     repo = g.get_repo(
-        f"{config.github_org}/{config.github_repo}",
+        f"{config.GITHUB_ORG}/{config.GITHUB_REPO}",
         lazy=True,
     )
 

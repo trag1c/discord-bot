@@ -12,12 +12,12 @@ bot = commands.Bot(command_prefix=commands.when_mentioned_or("!"), intents=inten
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     print(f"Bot logged on as {bot.user}!")
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message: discord.Message) -> None:
     # Ignore our own messages
     if message.author == bot.user:
         return
@@ -45,13 +45,17 @@ async def on_message(message):
     if ISSUE_REGEX.search(message.content):
         await handle_issues(message)
 
+    # Delete non-image messages in #showcase
+    if message.channel.id == config.SHOWCASE_CHANNEL_ID and not message.attachments:
+        await message.delete()
+
     # Unknow message, try commands
     await bot.process_commands(message)
 
 
 @bot.command()
 @commands.is_owner()
-async def sync(ctx: commands.Context):
+async def sync(ctx: commands.Context) -> None:
     """
     Syncs all global commands.
     """
@@ -60,7 +64,9 @@ async def sync(ctx: commands.Context):
 
 
 @bot.tree.context_menu(name="Invite to Beta")
-async def invite_member(interaction: discord.Interaction, member: discord.Member):
+async def invite_member(
+    interaction: discord.Interaction, member: discord.Member
+) -> None:
     """
     Adds a context menu item to a user to invite them to the beta.
 
@@ -73,7 +79,7 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
         )
         return
 
-    if interaction.user.get_role(config.mod_role_id) is None:
+    if interaction.user.get_role(config.MOD_ROLE_ID) is None:
         await interaction.response.send_message(
             "You need to be an admin to add testers.", ephemeral=True
         )
@@ -85,17 +91,17 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
         )
         return
 
-    if member.get_role(config.tester_role_id) is not None:
+    if member.get_role(config.TESTER_ROLE_ID) is not None:
         await interaction.response.send_message(
             "This user is already a tester.", ephemeral=True
         )
         return
 
     await member.add_roles(
-        discord.Object(config.tester_role_id),
+        discord.Object(config.TESTER_ROLE_ID),
         reason="invite to beta context menu",
     )
-    await member.send(view.new_tester_dm)
+    await member.send(view.NEW_TESTER_DM)
 
     await interaction.response.send_message(
         f"Added {member} as a tester.", ephemeral=True
@@ -103,7 +109,7 @@ async def invite_member(interaction: discord.Interaction, member: discord.Member
 
 
 @bot.tree.command(name="invite", description="Invite a user to the beta.")
-async def invite(interaction: discord.Interaction, member: discord.Member):
+async def invite(interaction: discord.Interaction, member: discord.Member) -> None:
     """
     Same as invite_member but via a slash command.
     """
@@ -111,7 +117,7 @@ async def invite(interaction: discord.Interaction, member: discord.Member):
 
 
 @bot.tree.command(name="accept-invite", description="Accept a pending tester invite.")
-async def accept_invite(interaction: discord.Interaction):
+async def accept_invite(interaction: discord.Interaction) -> None:
     """
     Accept the tester invite. This should be invoked by someone who was
     invited to the beta to complete setup with GitHub.
@@ -124,20 +130,20 @@ async def accept_invite(interaction: discord.Interaction):
         return
 
     # Verify the author is a tester
-    if interaction.user.get_role(config.tester_role_id) is None:
+    if interaction.user.get_role(config.TESTER_ROLE_ID) is None:
         await interaction.response.send_message(
             "You haven't been invited to be a tester yet.", ephemeral=True
         )
         return
 
     # If the user already has the github role it means they already linked.
-    if interaction.user.get_role(config.github_role_id) is not None:
+    if interaction.user.get_role(config.GITHUB_ROLE_ID) is not None:
         await interaction.response.send_message(
-            view.tester_link_already, ephemeral=True
+            view.TESTER_LINK_ALREADY, ephemeral=True
         )
         return
 
     # Send the tester link view
     await interaction.response.send_message(
-        view.tester_accept_invite, view=view.TesterWelcome(), ephemeral=True
+        view.TESTER_ACCEPT_INVITE, view=view.TesterWelcome(), ephemeral=True
     )
