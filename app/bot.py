@@ -101,7 +101,7 @@ async def invite_member(
         discord.Object(config.TESTER_ROLE_ID),
         reason="invite to beta context menu",
     )
-    await member.send(view.new_tester_dm)
+    await member.send(view.NEW_TESTER_DM)
 
     await interaction.response.send_message(
         f"Added {member} as a tester.", ephemeral=True
@@ -139,11 +139,11 @@ async def accept_invite(interaction: discord.Interaction) -> None:
     # If the user already has the github role it means they already linked.
     if interaction.user.get_role(config.GITHUB_ROLE_ID) is not None:
         await interaction.response.send_message(
-            view.tester_link_already, ephemeral=True
+            view.TESTER_LINK_ALREADY, ephemeral=True
         )
         return
 
     # Send the tester link view
     await interaction.response.send_message(
-        view.tester_accept_invite, view=view.TesterWelcome(), ephemeral=True
+        view.TESTER_ACCEPT_INVITE, view=view.TesterWelcome(), ephemeral=True
     )

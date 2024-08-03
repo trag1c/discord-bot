@@ -74,6 +74,20 @@ class TesterLink(discord.ui.Modal, title="Link GitHub"):
         traceback.print_exception(type(error), error, error.__traceback__)
 
 
+NEW_TESTER_DM = """
+Hello! You've been invited to help test Ghostty. Thank you! To accept
+the invite, please run the `/accept-invite` command in the Ghostty server.
+"""
+
+TESTER_ACCEPT_INVITE = """
+Hello! You've been invited to help test Ghostty. Thank you. Please press the
+button below to provide your GitHub username. This will allow us to invite
+you to the GitHub organization and give you access to the repository.
+
+If the command below fails or you forget to complete this step, you can
+always trigger this message again by running the `/accept-invite` command.
+""".strip()
+
 TESTER_LINK_ALREADY = """
 You've already linked a GitHub account. If you need to change it,
 please contact a mod.
