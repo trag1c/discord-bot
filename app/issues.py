@@ -7,7 +7,7 @@ from discord import Message
 from app import config
 from app.github import g
 
-ISSUE_REGEX = re.compile(r"#(\d{2,})(?!\.\d+)\b")
+ISSUE_REGEX = re.compile(r"#(\d{2,})(?!\.\d)\b")
 ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
 
 
