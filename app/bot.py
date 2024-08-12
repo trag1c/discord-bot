@@ -81,7 +81,7 @@ async def invite_member(
 
     if interaction.user.get_role(config.MOD_ROLE_ID) is None:
         await interaction.response.send_message(
-            "You need to be an admin to add testers.", ephemeral=True
+            "You do not have permission to invite new testers.", ephemeral=True
         )
         return
 
