@@ -108,7 +108,9 @@ and small "obvious" issues are common. Please report it and we'll make it better
 That being said, feel free to talk about Ghostty publicly. You're welcome to share
 screenshots, stream with it, whatever. Just please do not share the source code yet.
 
-You should have received an invite from GitHub with a link to the repo.
+You should have received an invite from GitHub with a link to the repo. Emails
+from GitHub are sometimes delayed, so you can also check the organization
+directly to see if you have access: https://github.com/ghostty-org
 
 ❤️ Mitchell
 """.strip()
