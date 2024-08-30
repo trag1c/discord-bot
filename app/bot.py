@@ -1,3 +1,5 @@
+from typing import cast
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -100,7 +102,7 @@ async def vouch_member(
         f"{interaction.user.mention} vouched for "
         f"{member.mention} to join the beta."
     )
-    await channel.send(content)
+    await cast(discord.TextChannel, channel).send(content)
 
     await interaction.response.send_message(
         f"Vouched for {member.mention} as a tester.", ephemeral=True
