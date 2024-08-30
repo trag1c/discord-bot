@@ -80,8 +80,7 @@ async def vouch_member(
 
     if interaction.user.get_role(config.TESTER_ROLE_ID) is None:
         await interaction.response.send_message(
-            "You do not have permission to vouch for new testers.",
-            ephemeral=True
+            "You do not have permission to vouch for new testers.", ephemeral=True
         )
         return
 
@@ -99,8 +98,7 @@ async def vouch_member(
 
     channel = await bot.fetch_channel(config.MOD_CHANNEL_ID)
     content = (
-        f"{interaction.user.mention} vouched for "
-        f"{member.mention} to join the beta."
+        f"{interaction.user.mention} vouched for {member.mention} to join the beta."
     )
     await cast(discord.TextChannel, channel).send(content)
 
@@ -111,8 +109,7 @@ async def vouch_member(
 
 @vouch_member.error
 async def on_vouch_member_error(
-    interaction: discord.Interaction,
-    error: app_commands.AppCommandError
+    interaction: discord.Interaction, error: app_commands.AppCommandError
 ) -> None:
     """
     Handles the rate-limiting for the vouch command.
