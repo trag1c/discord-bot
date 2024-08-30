@@ -73,10 +73,7 @@ async def vouch_member(
     Adds a context menu item to a user to vouch for them to join the beta.
     """
     if not isinstance(interaction.user, discord.Member):
-        await interaction.response.send_message(
-            "This command must be run from the Ghostty server, not a DM.",
-            ephemeral=True,
-        )
+        await server_only_warning(interaction)
         return
 
     if interaction.user.get_role(config.TESTER_ROLE_ID) is None:
@@ -136,10 +133,7 @@ async def invite_member(
     This can only be invoked by a mod.
     """
     if not isinstance(interaction.user, discord.Member):
-        await interaction.response.send_message(
-            "This command must be run from the Ghostty server, not a DM.",
-            ephemeral=True,
-        )
+        await server_only_warning(interaction)
         return
 
     if interaction.user.get_role(config.MOD_ROLE_ID) is None:
@@ -186,10 +180,7 @@ async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
     Same as vouch_member but via a slash command.
     """
     if not isinstance(interaction.user, discord.Member):
-        await interaction.response.send_message(
-            "This command must be run from the Ghostty server, not a DM.",
-            ephemeral=True,
-        )
+        await server_only_warning(interaction)
         return
     await vouch_member.callback(interaction, member)
 
@@ -211,10 +202,7 @@ async def accept_invite(interaction: discord.Interaction) -> None:
     invited to the beta to complete setup with GitHub.
     """
     if not isinstance(interaction.user, discord.Member):
-        await interaction.response.send_message(
-            "This command must be run from the Ghostty server, not a DM.",
-            ephemeral=True,
-        )
+        await server_only_warning(interaction)
         return
 
     # Verify the author is a tester
@@ -234,4 +222,11 @@ async def accept_invite(interaction: discord.Interaction) -> None:
     # Send the tester link view
     await interaction.response.send_message(
         view.TESTER_ACCEPT_INVITE, view=view.TesterWelcome(), ephemeral=True
+    )
+
+
+async def server_only_warning(interaction: discord.Interaction) -> None:
+    await interaction.response.send_message(
+        "This command must be run from the Ghostty server, not a DM.",
+        ephemeral=True,
     )
