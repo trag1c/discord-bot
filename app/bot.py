@@ -99,11 +99,14 @@ async def vouch_member(
         return
 
     channel = await bot.fetch_channel(config.MOD_CHANNEL_ID)
-    content = f"{interaction.user} vouched for {member} to join the beta."
+    content = (
+        f"{interaction.user.mention} vouched for "
+        f"{member.mention} to join the beta."
+    )
     await channel.send(content)
 
     await interaction.response.send_message(
-        f"Vouched for {member} as a tester.", ephemeral=True
+        f"Vouched for {member.mention} as a tester.", ephemeral=True
     )
 
 
