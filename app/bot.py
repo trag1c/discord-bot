@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from app import config, view
@@ -62,8 +63,9 @@ async def sync(ctx: commands.Context) -> None:
     await bot.tree.sync()
     await ctx.author.send("Command tree synced.")
 
+
 @bot.tree.context_menu(name="Vouch for Beta")
-@commands.checks.cooldown(1, 60 * 60)
+@app_commands.checks.cooldown(1, 3600)
 async def vouch_member(
     interaction: discord.Interaction, member: discord.Member
 ) -> None:
@@ -104,18 +106,21 @@ async def vouch_member(
         f"Vouched for {member} as a tester.", ephemeral=True
     )
 
+
 @vouch_member.error
-async def vouch_member_error(
+async def on_vouch_member_error(
     interaction: discord.Interaction,
-    error: commands.AppCommandError
+    error: app_commands.AppCommandError
 ) -> None:
     """
     Handles the rate-limiting for the vouch command.
     """
-    if isinstance(error, commands.CommandOnCooldown):
-        content = f"You can only vouch for one user per hour."
-        content += f" Try again in {error.retry_after:.0f} seconds."
-        await interaction.send(content, ephemeral=True)
+    if isinstance(error, app_commands.CommandOnCooldown):
+        content = (
+            "You can only vouch for one user per hour."
+            f" Try again in {error.retry_after:.0f} seconds."
+        )
+        await interaction.response.send_message(content, ephemeral=True)
 
 
 @bot.tree.context_menu(name="Invite to Beta")
@@ -172,22 +177,29 @@ async def invite(interaction: discord.Interaction, member: discord.Member) -> No
 
 
 @bot.tree.command(name="vouch", description="Vouch for a user to join the beta.")
-@commands.checks.cooldown(1, 60 * 60)
-async def vouch(interaction: discord.Interaction, member: discord.Member) -> None:
+@app_commands.checks.cooldown(1, 3600)
+async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
     """
     Same as vouch_member but via a slash command.
     """
+    if not isinstance(interaction.user, discord.Member):
+        await interaction.response.send_message(
+            "This command must be run from the Ghostty server, not a DM.",
+            ephemeral=True,
+        )
+        return
     await vouch_member.callback(interaction, member)
 
 
 @vouch.error
 async def vouch_error(
-    interaction: discord.Interaction, error: commands.AppCommandError
+    interaction: discord.Interaction, error: app_commands.AppCommandError
 ) -> None:
     """
     Handles the rate-limiting for the vouch command.
     """
-    await vouch_member_error.callback(interaction, error)
+    await on_vouch_member_error(interaction, error)
+
 
 @bot.tree.command(name="accept-invite", description="Accept a pending tester invite.")
 async def accept_invite(interaction: discord.Interaction) -> None:
