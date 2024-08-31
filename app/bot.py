@@ -67,7 +67,7 @@ async def sync(ctx: commands.Context) -> None:
 
 
 @bot.tree.context_menu(name="Vouch for Beta")
-@app_commands.checks.cooldown(1, 3600)
+@app_commands.checks.cooldown(1, 604800)
 async def vouch_member(
     interaction: discord.Interaction, member: discord.Member
 ) -> None:
@@ -173,7 +173,7 @@ async def invite(interaction: discord.Interaction, member: discord.Member) -> No
 
 
 @bot.tree.command(name="vouch", description="Vouch for a user to join the beta.")
-@app_commands.checks.cooldown(1, 3600)
+@app_commands.checks.cooldown(1, 604800)
 async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
     """
     Same as vouch_member but via a slash command.
