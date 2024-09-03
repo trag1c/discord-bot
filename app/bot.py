@@ -8,7 +8,11 @@ from app.issues import ISSUE_REGEX, handle_issues
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-bot = commands.Bot(command_prefix=commands.when_mentioned_or("!"), intents=intents)
+bot = commands.Bot(
+    command_prefix=commands.when_mentioned_or("!"),
+    intents=intents,
+    allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
+)
 
 
 @bot.event
