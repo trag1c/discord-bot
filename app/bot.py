@@ -120,7 +120,7 @@ async def on_vouch_member_error(
     """
     if isinstance(error, app_commands.CommandOnCooldown):
         content = (
-            "You can only vouch for one user per hour."
+            "Vouches are rate-limited per user."
             f" Try again in {error.retry_after:.0f} seconds."
         )
         await interaction.response.send_message(content, ephemeral=True)
