@@ -36,7 +36,7 @@ async def handle_issues(message: Message) -> None:
         kind = "Pull Request" if issue.pull_request else "Issue"
         issues.add(ISSUE_TEMPLATE.format(kind=kind, issue=issue))
 
-    if len(issues) == 0:
+    if not issues:
         return
 
     await message.reply("\n".join(issues), mention_author=False)
