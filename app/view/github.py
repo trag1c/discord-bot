@@ -5,6 +5,7 @@ import github
 
 from app import config
 from app.github import g
+from app.utils import has_linked_github
 
 
 class TesterWelcome(discord.ui.View):
@@ -30,8 +31,7 @@ class TesterLink(discord.ui.Modal, title="Link GitHub"):
         # Defer since we're going to do a bunch of slow stuff.
         await interaction.response.defer(ephemeral=True, thinking=True)
 
-        # If the user already has the github role it means they already linked.
-        if interaction.user.get_role(config.GITHUB_ROLE_ID) is not None:
+        if has_linked_github(interaction.user):
             await interaction.followup.send(TESTER_LINK_ALREADY, ephemeral=True)
             return
 

@@ -6,6 +6,7 @@ from discord.ext import commands
 
 from app import config, view
 from app.issues import ISSUE_REGEX, handle_issues
+from app.utils import has_linked_github, is_mod, is_tester, server_only_warning
 
 # Initialize our bot
 intents = discord.Intents.default()
@@ -82,7 +83,7 @@ async def vouch_member(
         await server_only_warning(interaction)
         return
 
-    if interaction.user.get_role(config.TESTER_ROLE_ID) is None:
+    if not is_tester(interaction.user):
         await interaction.response.send_message(
             "You do not have permission to vouch for new testers.", ephemeral=True
         )
@@ -94,7 +95,7 @@ async def vouch_member(
         )
         return
 
-    if member.get_role(config.TESTER_ROLE_ID) is not None:
+    if is_tester(member):
         await interaction.response.send_message(
             "This user is already a tester.", ephemeral=True
         )
@@ -139,7 +140,7 @@ async def invite_member(
         await server_only_warning(interaction)
         return
 
-    if interaction.user.get_role(config.MOD_ROLE_ID) is None:
+    if not is_mod(interaction.user):
         await interaction.response.send_message(
             "You do not have permission to invite new testers.", ephemeral=True
         )
@@ -151,7 +152,7 @@ async def invite_member(
         )
         return
 
-    if member.get_role(config.TESTER_ROLE_ID) is not None:
+    if is_tester(member):
         await interaction.response.send_message(
             "This user is already a tester.", ephemeral=True
         )
@@ -208,15 +209,13 @@ async def accept_invite(interaction: discord.Interaction) -> None:
         await server_only_warning(interaction)
         return
 
-    # Verify the author is a tester
-    if interaction.user.get_role(config.TESTER_ROLE_ID) is None:
+    if not is_tester(interaction.user):
         await interaction.response.send_message(
             "You haven't been invited to be a tester yet.", ephemeral=True
         )
         return
 
-    # If the user already has the github role it means they already linked.
-    if interaction.user.get_role(config.GITHUB_ROLE_ID) is not None:
+    if has_linked_github(interaction.user):
         await interaction.response.send_message(
             view.TESTER_LINK_ALREADY, ephemeral=True
         )
@@ -225,11 +224,4 @@ async def accept_invite(interaction: discord.Interaction) -> None:
     # Send the tester link view
     await interaction.response.send_message(
         view.TESTER_ACCEPT_INVITE, view=view.TesterWelcome(), ephemeral=True
-    )
-
-
-async def server_only_warning(interaction: discord.Interaction) -> None:
-    await interaction.response.send_message(
-        "This command must be run from the Ghostty server, not a DM.",
-        ephemeral=True,
     )

@@ -6,6 +6,7 @@ from discord import Message
 
 from app import config
 from app.github import g
+from app.utils import is_tester
 
 ISSUE_REGEX = re.compile(r"#(\d{2,})(?!\.\d)\b")
 ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
@@ -18,8 +19,7 @@ async def handle_issues(message: Message) -> None:
         )
         return
 
-    # Check if the user is a tester.
-    if message.author.get_role(config.TESTER_ROLE_ID) is None:
+    if not is_tester(message.author):
         return
 
     repo = g.get_repo(
