@@ -1,5 +1,9 @@
 import os
 
+import dotenv
+
+dotenv.load_dotenv()
+
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 GITHUB_ORG = os.environ["GITHUB_ORG"]
