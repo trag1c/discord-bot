@@ -4,6 +4,10 @@ The Ghostty Discord Bot, humorlessly named "Ghostty Bot."
 
 ## Development
 
+The Nix environment is the only supported development environment. You can
+develop this without Nix, of course, but I'm not going to help you figure it
+out.
+
 ### Discord Bot
 
 You will have to [set up a Discord bot][discord-docs] and get a Discord
