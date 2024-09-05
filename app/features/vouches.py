@@ -92,10 +92,9 @@ async def on_vouch_member_error(
     Handles the rate-limiting for the vouch command.
     """
     if isinstance(error, app_commands.CommandOnCooldown):
-        content = (
-            "Vouches are rate-limited per user."
-            f" Try again in {error.retry_after:.0f} seconds."
-        )
+        h, m = divmod(int(error.retry_after / 60), 60)
+        d, h = divmod(h, 24)
+        content = f"Vouches are rate-limited per user. Try again in {d}d {h}h {m}m."
         await interaction.response.send_message(content, ephemeral=True)
 
 
