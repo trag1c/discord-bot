@@ -1,6 +1,6 @@
 import discord
 
-from app import config
+from app.setup import config
 
 
 async def server_only_warning(interaction: discord.Interaction) -> None:

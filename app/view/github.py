@@ -3,8 +3,7 @@ import traceback
 import discord
 import github
 
-from app import config
-from app.github import g
+from app.setup import config, gh
 from app.utils import has_linked_github
 
 
@@ -37,7 +36,7 @@ class TesterLink(discord.ui.Modal, title="Link GitHub"):
 
         # Get and verify the GitHub user
         try:
-            user = g.get_user(self.username.value)
+            user = gh.get_user(self.username.value)
         except github.UnknownObjectException:
             await interaction.followup.send(
                 f"GitHub user '{self.username.value}' not found.", ephemeral=True
@@ -53,7 +52,7 @@ class TesterLink(discord.ui.Modal, title="Link GitHub"):
             )
         except github.UnknownObjectException:
             # This is good, they aren't a member yet.
-            org = g.get_organization(config.GITHUB_ORG)
+            org = gh.get_organization(config.GITHUB_ORG)
             team = org.get_team_by_slug(config.GITHUB_TESTER_TEAM)
             org.invite_user(user=user, role="direct_member", teams=[team])
 
