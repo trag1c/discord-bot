@@ -2,7 +2,7 @@ import discord
 
 from app import view
 from app.setup import bot, config
-from app.utils import has_linked_github, is_mod, is_tester, server_only_warning
+from app.utils import has_linked_github, is_dm, is_mod, is_tester, server_only_warning
 
 
 @bot.tree.context_menu(name="Invite to Beta")
@@ -14,7 +14,7 @@ async def invite_member(
 
     This can only be invoked by a mod.
     """
-    if not isinstance(interaction.user, discord.Member):
+    if is_dm(interaction.user):
         await server_only_warning(interaction)
         return
 
@@ -61,7 +61,7 @@ async def accept_invite(interaction: discord.Interaction) -> None:
     Accept the tester invite. This should be invoked by someone who was
     invited to the beta to complete setup with GitHub.
     """
-    if not isinstance(interaction.user, discord.Member):
+    if is_dm(interaction.user):
         await server_only_warning(interaction)
         return
 

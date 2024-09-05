@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import discord
+from typing_extensions import TypeIs
 
 from app.setup import config
 
@@ -8,6 +11,10 @@ async def server_only_warning(interaction: discord.Interaction) -> None:
         "This command must be run from the Ghostty server, not a DM.",
         ephemeral=True,
     )
+
+
+def is_dm(user: discord.User | discord.Member) -> TypeIs[discord.User]:
+    return not isinstance(user, discord.Member)
 
 
 def _has_role(member: discord.Member, role_id: int) -> bool:

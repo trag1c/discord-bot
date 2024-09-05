@@ -1,18 +1,17 @@
 import re
 
-import discord
 import github
 from discord import Message
 
 from app.setup import config, gh
-from app.utils import is_tester
+from app.utils import is_dm, is_tester
 
 ISSUE_REGEX = re.compile(r"#(\d{2,})(?!\.\d)\b")
 ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
 
 
 async def handle_issues(message: Message) -> None:
-    if not isinstance(message.author, discord.Member):
+    if is_dm(message.author):
         await message.channel.send(
             "You can only mention issues/PRs in the Ghostty server."
         )
