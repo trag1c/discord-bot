@@ -6,7 +6,7 @@ import discord
 from discord import app_commands
 
 from app.setup import bot, config
-from app.utils import is_mod, is_tester, server_only_warning
+from app.utils import is_dm, is_mod, is_tester, server_only_warning
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -32,7 +32,7 @@ def _get_members_from_interaction(
 
 def can_vouch(interaction: discord.Interaction) -> app_commands.Cooldown | None:
     if (
-        not isinstance(interaction.user, discord.Member)
+        is_dm(interaction.user)
         or not is_tester(interaction.user)
         or is_mod(interaction.user)
     ):
@@ -51,7 +51,7 @@ async def vouch_member(
     """
     Adds a context menu item to a user to vouch for them to join the beta.
     """
-    if not isinstance(interaction.user, discord.Member):
+    if is_dm(interaction.user):
         await server_only_warning(interaction)
         return
 
@@ -105,7 +105,7 @@ async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
     """
     Same as vouch_member but via a slash command.
     """
-    if not isinstance(interaction.user, discord.Member):
+    if is_dm(interaction.user):
         await server_only_warning(interaction)
         return
     await vouch_member.callback(interaction, member)
