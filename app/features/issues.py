@@ -4,8 +4,7 @@ import discord
 import github
 from discord import Message
 
-from app import config
-from app.github import g
+from app.setup import config, gh
 from app.utils import is_tester
 
 ISSUE_REGEX = re.compile(r"#(\d{2,})(?!\.\d)\b")
@@ -22,7 +21,7 @@ async def handle_issues(message: Message) -> None:
     if not is_tester(message.author):
         return
 
-    repo = g.get_repo(
+    repo = gh.get_repo(
         f"{config.GITHUB_ORG}/{config.GITHUB_REPO}",
         lazy=True,
     )

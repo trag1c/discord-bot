@@ -1,7 +1,6 @@
 import sentry_sdk
 
-from app import config
-from app.bot import bot
+from app.core import bot, config
 
 if config.SENTRY_DSN is not None:
     sentry_sdk.init(
