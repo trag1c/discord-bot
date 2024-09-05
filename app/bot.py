@@ -56,18 +56,17 @@ async def on_message(message: discord.Message) -> None:
     if message.channel.id == config.SHOWCASE_CHANNEL_ID and not message.attachments:
         await message.delete()
 
-    # Unknow message, try commands
-    await bot.process_commands(message)
+    # Owner-only sync command
+    if message.content.rstrip() == "!sync":
+        await sync(bot, message)
 
 
-@bot.command()
-@commands.is_owner()
-async def sync(ctx: commands.Context) -> None:
-    """
-    Syncs all global commands.
-    """
+async def sync(bot: commands.Bot, message: discord.Message) -> None:
+    """Syncs all global commands."""
+    if not await bot.is_owner(message.author):
+        return
     await bot.tree.sync()
-    await ctx.author.send("Command tree synced.")
+    await message.author.send("Command tree synced.")
 
 
 @bot.tree.context_menu(name="Vouch for Beta")
