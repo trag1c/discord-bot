@@ -1,14 +1,50 @@
-from typing import cast
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, cast
 
 import discord
 from discord import app_commands
 
 from app.setup import bot, config
-from app.utils import is_tester, server_only_warning
+from app.utils import is_mod, is_tester, server_only_warning
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+COOLDOWN_TIME = 604_800  # 1 week
+
+
+def _get_members_from_interaction(
+    interaction: discord.Interaction,
+) -> Iterator[discord.Member]:
+    if (
+        not interaction.data
+        or not (resolved_data := interaction.data.get("resolved", {}))
+        or not (resolved_members := resolved_data.get("members", {}))
+    ):
+        return iter(())
+    # This function is called after the DM check so
+    # interaction.guild is guaranteed to be a Guild
+    guild = cast(discord.Guild, interaction.guild)
+    member_ids = map(int, resolved_members)
+    return filter(None, map(guild.get_member, member_ids))
+
+
+def can_vouch(interaction: discord.Interaction) -> app_commands.Cooldown | None:
+    if (
+        not isinstance(interaction.user, discord.Member)
+        or not is_tester(interaction.user)
+        or is_mod(interaction.user)
+    ):
+        return None
+    target_member = next(_get_members_from_interaction(interaction))
+    if target_member.bot or is_tester(target_member):
+        return None
+    return app_commands.Cooldown(1, COOLDOWN_TIME)
 
 
 @bot.tree.context_menu(name="Vouch for Beta")
-@app_commands.checks.cooldown(1, 604800)
+@app_commands.checks.dynamic_cooldown(can_vouch)
 async def vouch_member(
     interaction: discord.Interaction, member: discord.Member
 ) -> None:
@@ -64,7 +100,7 @@ async def on_vouch_member_error(
 
 
 @bot.tree.command(name="vouch", description="Vouch for a user to join the beta.")
-@app_commands.checks.cooldown(1, 604800)
+@app_commands.checks.dynamic_cooldown(can_vouch)
 async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
     """
     Same as vouch_member but via a slash command.
