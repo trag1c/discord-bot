@@ -1,0 +1,17 @@
+on: [push, pull_request]
+name: Ruff
+jobs:
+  check-ruff:
+    if: github.repository == 'ghostty-org/discord-bot'
+    runs-on: namespace-profile-ghostty-sm
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Nix
+        uses: cachix/install-nix-action@V27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: Lint code
+        run: |
+          nix develop -c ruff check
+          nix develop -c ruff format --check
