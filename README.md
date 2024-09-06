@@ -27,6 +27,12 @@ $ python -m app
 ...
 ```
 
+After you've made your changes, run the linter and formatter:
+```console
+$ ruff check
+$ ruff format
+```
+
 ### Non-Nix
 
 This bot runs on Python 3.11+ and is managed with Poetry. To get started:
@@ -38,6 +44,11 @@ This bot runs on Python 3.11+ and is managed with Poetry. To get started:
    ...
    $ poetry run python -m app
    ...
+   ```
+4. After you've made your changes, run the linter and formatter:
+   ```console
+   $ poetry run ruff check
+   $ poetry run ruff format
    ```
 
 [discord-docs]: https://discord.com/developers/applications
