@@ -1,3 +1,11 @@
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+from traceback import print_tb
+from typing import cast
+
 import discord
 from discord.ext import commands
 
@@ -8,6 +16,20 @@ from app.setup import bot, config
 @bot.event
 async def on_ready() -> None:
     print(f"Bot logged on as {bot.user}!")
+
+
+@bot.event
+async def on_error(event: str, *_args: object, **_kwargs: object) -> None:
+    exc = cast(BaseException, sys.exc_info()[1])
+    handle_error(exc, event_type=event)
+
+
+@bot.tree.error
+async def on_app_command_error(
+    interaction: discord.Interaction, error: Exception
+) -> None:
+    await interaction.response.send_message("Something went wrong :(", ephemeral=True)
+    handle_error(error)
 
 
 @bot.event
@@ -54,3 +76,33 @@ async def sync(bot: commands.Bot, message: discord.Message) -> None:
         return
     await bot.tree.sync()
     await message.author.send("Command tree synced.")
+
+
+def handle_error(error: BaseException, *, event_type: str | None = None) -> None:
+    if _is_ratelimit(error):
+        # Restart the bot with a delay at startup.
+        # This effectively replaces the current process.
+        os.execv(
+            sys.executable,
+            (
+                "python",
+                Path(__file__).parent / "__main__.py",
+                *sys.argv[1:],
+                "--rate-limit-delay",
+            ),
+        )
+
+    event_info = f" in event {event_type}" if event_type else ""
+    print(
+        f"An error occurred{event_info}",
+        f"> {type(error).__name__}",
+        f"> {error}",
+        sep="\n",
+    )
+    print_tb(error.__traceback__)
+
+
+def _is_ratelimit(error: BaseException) -> bool:
+    if isinstance(error, discord.app_commands.CommandInvokeError):
+        error = error.original
+    return isinstance(error, discord.HTTPException) and error.status == 429
