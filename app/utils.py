@@ -13,6 +13,17 @@ async def server_only_warning(interaction: discord.Interaction) -> None:
     )
 
 
+async def get_or_create_webhook(
+    name: str, channel: discord.TextChannel
+) -> discord.Webhook:
+    webhooks = await channel.webhooks()
+    for webhook in webhooks:
+        if webhook.name == name:
+            return webhook
+
+    return await channel.create_webhook(name=name)
+
+
 def is_dm(user: discord.User | discord.Member) -> TypeIs[discord.User]:
     return not isinstance(user, discord.Member)
 

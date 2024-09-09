@@ -1,3 +1,3 @@
-from app.features import invites, issues, vouches
+from app.features import invites, issues, mod, vouches
 
-__all__ = ("invites", "issues", "vouches")
+__all__ = ("invites", "issues", "mod", "vouches")
