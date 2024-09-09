@@ -40,6 +40,7 @@ class SelectChannel(discord.ui.View):
             avatar_url=self.message.author.avatar.url,
         )
 
+        await self.message.delete()
         await interaction.response.send_message(
             f"Moved the message to {channel.mention}.", ephemeral=True
         )
