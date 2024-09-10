@@ -11,6 +11,9 @@ ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
 
 
 async def handle_issues(message: Message) -> None:
+    if message.author.bot:
+        return
+
     if is_dm(message.author):
         await message.channel.send(
             "You can only mention issues/PRs in the Ghostty server."
