@@ -5,7 +5,7 @@ from app.utils import get_or_create_webhook, move_message_via_webhook
 
 
 class SelectChannel(discord.ui.View):
-    def __init__(self, message: discord.Message, executor: discord.Member):
+    def __init__(self, message: discord.Message, executor: discord.Member) -> None:
         super().__init__()
         self.message = message
         self.executor = executor

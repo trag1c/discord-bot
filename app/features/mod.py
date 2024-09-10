@@ -23,9 +23,8 @@ async def move_message(
         )
         return
 
-    executor = interaction.user
     await interaction.response.send_message(
         "Select a channel to move this message to.",
-        view=view.SelectChannel(message, executor),
+        view=view.SelectChannel(message, executor=interaction.user),
         ephemeral=True,
     )

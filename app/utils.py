@@ -40,7 +40,7 @@ async def move_message_via_webhook(
     uploads = []
     skipped = 0
 
-    if message.attachments and len(message.attachments) > 0:
+    if message.attachments:
         # We need to store the attachments in a buffer for a reupload
         for attachment in message.attachments:
             if attachment.size > MAX_ATTACHMENT_SIZE:
@@ -50,17 +50,13 @@ async def move_message_via_webhook(
             fp = io.BytesIO(await attachment.read())
             uploads.append(discord.File(fp, filename=attachment.filename))
 
+    subtext = ""
     if executor:
-        content += f"\n-# Moved from {message.channel.mention}"
-        content += f" by {executor.mention}"
-
-    if skipped > 0:
-        # Need to add this if executor is None
-        # otherwise there will be no tiny footer
-        if executor is None:
-            content += "\n-#"
-
-        content += f" (skipped {skipped} large attachment(s))"
+        subtext += f" Moved from {message.channel.mention} by {executor.mention}"
+    if skipped:
+        subtext += f" (skipped {skipped} large attachment(s))"
+    if subtext:
+        content += f"\n-#{subtext}"
 
     await webhook.send(
         content=content,
