@@ -19,7 +19,10 @@ async def get_or_create_webhook(
     webhooks = await channel.webhooks()
     for webhook in webhooks:
         if webhook.name == name:
-            return webhook
+            if webhook.token is None:
+                await webhook.delete()
+            else:
+                return webhook
 
     return await channel.create_webhook(name=name)
 
