@@ -11,6 +11,7 @@ from discord.ext import commands
 
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
+from app.utils import is_mod
 
 
 @bot.event
@@ -65,15 +66,16 @@ async def on_message(message: discord.Message) -> None:
     if message.channel.id == config.SHOWCASE_CHANNEL_ID and not message.attachments:
         await message.delete()
 
-    # Owner-only sync command
+    # Mod-only sync command
     if message.content.rstrip() == "!sync":
         await sync(bot, message)
 
 
 async def sync(bot: commands.Bot, message: discord.Message) -> None:
     """Syncs all global commands."""
-    if not await bot.is_owner(message.author):
+    if not is_mod(message.author):
         return
+
     await bot.tree.sync()
     await message.author.send("Command tree synced.")
 
