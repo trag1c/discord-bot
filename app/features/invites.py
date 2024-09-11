@@ -6,6 +6,7 @@ from app.utils import has_linked_github, is_dm, is_mod, is_tester, server_only_w
 
 
 @bot.tree.context_menu(name="Invite to Beta")
+@discord.app_commands.default_permissions(manage_messages=True)
 async def invite_member(
     interaction: discord.Interaction, member: discord.Member
 ) -> None:
@@ -48,6 +49,7 @@ async def invite_member(
 
 
 @bot.tree.command(name="invite", description="Invite a user to the beta.")
+@discord.app_commands.default_permissions(manage_messages=True)
 async def invite(interaction: discord.Interaction, member: discord.Member) -> None:
     """
     Same as invite_member but via a slash command.

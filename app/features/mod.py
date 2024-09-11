@@ -6,6 +6,7 @@ from app.utils import is_dm, is_mod, server_only_warning
 
 
 @bot.tree.context_menu(name="Move message")
+@discord.app_commands.default_permissions(manage_messages=True)
 async def move_message(
     interaction: discord.Interaction, message: discord.Message
 ) -> None:
