@@ -50,7 +50,27 @@ async def move_message_via_webhook(
             fp = io.BytesIO(await attachment.read())
             uploads.append(discord.File(fp, filename=attachment.filename))
 
+    reactions_with_count = {}
+    for reaction in message.reactions:
+        emoji = reaction.emoji
+        if isinstance(emoji, discord.Emoji) and not emoji.is_usable():
+            continue
+
+        if isinstance(emoji, discord.PartialEmoji):
+            # TODO: Can we register the emoji with the bot temporarily?
+            continue
+
+        reactions_with_count[reaction.emoji] = reaction.count
+
     subtext = ""
+    if reactions_with_count:
+        subtext += " "
+        subtext += "   ".join(
+            f"x{count} {emoji}" for emoji, count in reactions_with_count.items()
+        )
+
+        subtext += "\n"
+
     if executor:
         subtext += f" Moved from {message.channel.mention} by {executor.mention}"
     if skipped:
