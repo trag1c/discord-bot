@@ -12,6 +12,7 @@ from discord.ext import commands
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
 from app.utils import is_mod
+from app import db
 
 
 @bot.event
