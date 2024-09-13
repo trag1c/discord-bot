@@ -3,7 +3,12 @@ from sqlalchemy.sql import text
 
 from app import config
 
-engine = create_engine(config.BOT_DATABASE_URL, pool_size=10, max_overflow=10)
+engine = create_engine(
+    config.BOT_DATABASE_URL,
+    pool_size=10,
+    max_overflow=10,
+    client_encoding="utf8",
+)
 
 def attempt_connect() -> None:
     try:

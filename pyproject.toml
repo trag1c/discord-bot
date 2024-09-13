@@ -9,6 +9,7 @@ packages = [{include = "app"}]
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.8"
 psycopg2-binary = "^2.9.9"
+alembic = {extras = ["tz"], version = "^1.13.2"}
 
 [tool.ruff.lint]
 extend-select = ["I", "TID252", "SIM"]
@@ -24,3 +25,4 @@ pygithub = "^2.3.0"
 sentry-sdk = "^2.3.1"
 python-dotenv = "^1.0.1"
 sqlalchemy = "^2.0.34"
+psycopg = "^3.2.1"
