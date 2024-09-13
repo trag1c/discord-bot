@@ -8,7 +8,6 @@ packages = [{include = "app"}]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.8"
-psycopg2-binary = "^2.9.9"
 alembic = {extras = ["tz"], version = "^1.13.2"}
 
 [tool.ruff.lint]
