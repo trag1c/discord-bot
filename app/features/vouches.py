@@ -120,6 +120,7 @@ async def vouch_member(
         return
 
     if fetch_user(interaction.user).is_vouch_blacklisted:
+        # We're trolling the user the bot is broken
         await interaction.response.send_message(
             "Something went wrong :(", ephemeral=True
         )
