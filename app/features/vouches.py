@@ -1,53 +1,66 @@
 from __future__ import annotations
 
+import datetime as dt
 from typing import TYPE_CHECKING, cast
 
 import discord
 from discord import app_commands
 
+from app import view
+from app.db import models
+from app.db.connect import Session
+from app.db.utils import fetch_user
 from app.setup import bot, config
 from app.utils import is_dm, is_mod, is_tester, server_only_warning
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    pass
 
 COOLDOWN_TIME = 604_800  # 1 week
 
 
-def _get_members_from_interaction(
-    interaction: discord.Interaction,
-) -> Iterator[discord.Member]:
-    if (
-        not interaction.data
-        or not (resolved_data := interaction.data.get("resolved", {}))
-        or not (resolved_members := resolved_data.get("members", {}))
-    ):
-        return iter(())
-    # This function is called after the DM check so
-    # interaction.guild is guaranteed to be a Guild
-    guild = cast(discord.Guild, interaction.guild)
-    member_ids = map(int, resolved_members)
-    return filter(None, map(guild.get_member, member_ids))
+@bot.tree.context_menu(name="Blacklist from vouching")
+@discord.app_commands.default_permissions(manage_messages=True)
+async def blacklist_vouch_member(
+    interaction: discord.Interaction, member: discord.User
+) -> None:
+    if is_dm(interaction.user):
+        await server_only_warning(interaction)
+        return
+
+    if not is_mod(interaction.user):
+        await interaction.response.send_message(
+            "You do not have permission to blacklist users from being vouched for.",
+            ephemeral=True,
+        )
+        return
+
+    db_user = fetch_user(member)
+
+    db_user.is_vouch_blacklisted = not db_user.is_vouch_blacklisted
+
+    with Session(expire_on_commit=False) as session:
+        session.add(db_user)
+        session.commit()
+
+    await interaction.response.send_message(
+        ("B" if db_user.is_vouch_blacklisted else "Unb")
+        + f"lacklisted {member.mention}.",
+        ephemeral=True,
+    )
 
 
-def can_vouch(interaction: discord.Interaction) -> app_commands.Cooldown | None:
-    if (
-        is_dm(interaction.user)
-        or not is_tester(interaction.user)
-        or is_mod(interaction.user)
-    ):
-        return None
-    target_member = next(_get_members_from_interaction(interaction))
-    if target_member.bot or is_tester(target_member):
-        return None
-    return app_commands.Cooldown(1, COOLDOWN_TIME)
-
-
-vouch_cooldown = app_commands.checks.dynamic_cooldown(can_vouch)
+@bot.tree.command(
+    name="blacklist-vouch", description="Blacklist a user from being vouched for."
+)
+@discord.app_commands.default_permissions(manage_messages=True)
+async def blacklist_vouch(
+    interaction: discord.Interaction, member: discord.User
+) -> None:
+    await blacklist_vouch_member.callback(interaction, member)
 
 
 @bot.tree.context_menu(name="Vouch for Beta")
-@vouch_cooldown
 async def vouch_member(
     interaction: discord.Interaction, member: discord.Member
 ) -> None:
@@ -76,11 +89,67 @@ async def vouch_member(
         )
         return
 
+    db_user = fetch_user(interaction.user)
+
+    if db_user.tester_since is not None and (
+        dt.datetime.now(tz=dt.UTC) - db_user.tester_since.replace(tzinfo=dt.UTC)
+        < dt.timedelta(weeks=1)
+    ):
+        await interaction.response.send_message(
+            "You have to be a tester for one week in order to vouch.",
+            ephemeral=True,
+        )
+        return
+
+    if _has_vouched_recently(interaction.user) and not is_mod(interaction.user):
+        await interaction.response.send_message(
+            "You can only vouch once per week.", ephemeral=True
+        )
+        return
+
+    if _has_already_vouched(interaction.user):
+        await interaction.response.send_message(
+            "You already have a pending vouch.", ephemeral=True
+        )
+        return
+
+    if _is_already_vouched_for(member):
+        await interaction.response.send_message(
+            "This user has already been vouched for.", ephemeral=True
+        )
+        return
+
+    if fetch_user(interaction.user).is_vouch_blacklisted:
+        await interaction.response.send_message(
+            "Something went wrong :(", ephemeral=True
+        )
+        return
+
     channel = await bot.fetch_channel(config.MOD_CHANNEL_ID)
     content = (
         f"{interaction.user.mention} vouched for {member.mention} to join the beta."
     )
-    await cast(discord.TextChannel, channel).send(content)
+
+    with Session(expire_on_commit=False) as session:
+        vouch_count = (
+            session.query(models.Vouch)
+            .filter_by(voucher_id=interaction.user.id)
+            .count()
+        )
+
+        content += f" (vouch #{vouch_count + 1})"
+
+        db_vouch = models.Vouch(
+            voucher_id=interaction.user.id,
+            receiver_id=member.id,
+        )
+
+        session.add(db_vouch)
+        session.commit()
+
+    await cast(discord.TextChannel, channel).send(
+        content=content, view=view.DecideVouch(vouch=db_vouch)
+    )
 
     await interaction.response.send_message(
         f"Vouched for {member.mention} as a tester.", ephemeral=True
@@ -102,7 +171,7 @@ async def on_vouch_member_error(
 
 
 @bot.tree.command(name="vouch", description="Vouch for a user to join the beta.")
-@vouch_cooldown
+# @vouch_cooldown
 async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
     """
     Same as vouch_member but via a slash command.
@@ -113,11 +182,31 @@ async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
     await vouch_member.callback(interaction, member)
 
 
-@vouch.error
-async def vouch_error(
-    interaction: discord.Interaction, error: app_commands.AppCommandError
-) -> None:
-    """
-    Handles the rate-limiting for the vouch command.
-    """
-    await on_vouch_member_error(interaction, error)
+def _is_already_vouched_for(member: discord.Member) -> bool:
+    with Session() as session:
+        return session.query(models.Vouch).filter_by(receiver_id=member.id).count() > 0
+
+
+def _has_already_vouched(user: discord.User | discord.Member) -> bool:
+    with Session() as session:
+        return (
+            session.query(models.Vouch)
+            .filter_by(voucher_id=user.id)
+            .filter_by(vouch_state=models.VouchState.PENDING)
+            .count()
+            > 0
+        )
+
+
+def _has_vouched_recently(user: discord.User | discord.Member) -> bool:
+    one_week_ago = dt.datetime.now(tz=dt.UTC) - dt.timedelta(weeks=1)
+
+    with Session() as session:
+        return (
+            session.query(models.Vouch)
+            .filter_by(voucher_id=user.id)
+            .filter(models.Vouch.vouch_state != models.VouchState.PENDING)
+            .filter(models.Vouch.request_date > one_week_ago)
+            .count()
+            > 0
+        )

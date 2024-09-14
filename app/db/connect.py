@@ -23,7 +23,3 @@ def attempt_connect() -> None:
     except Exception:
         engine.dispose()
         raise RuntimeError("Failed to connect to the database.")
-
-
-def transaction() -> Session:
-    return Session()

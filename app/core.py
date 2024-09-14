@@ -9,6 +9,7 @@ from typing import cast
 import discord
 from discord.ext import commands
 
+from app.db.utils import import_user
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
 from app.utils import is_mod
@@ -71,6 +72,14 @@ async def on_message(message: discord.Message) -> None:
         await sync(bot, message)
 
 
+@bot.event
+async def on_member_update(before: discord.Member, after: discord.Member) -> None:
+    if not (new_roles := set(after.roles) - set(before.roles)):
+        return
+    if next(iter(new_roles)).id == config.TESTER_ROLE_ID:
+        import_user(after, new_user=True)
+
+
 async def sync(bot: commands.Bot, message: discord.Message) -> None:
     """Syncs all global commands."""
     if not is_mod(message.author):
@@ -102,6 +111,8 @@ def handle_error(error: BaseException, *, event_type: str | None = None) -> None
         sep="\n",
     )
     print_tb(error.__traceback__)
+    if isinstance(error, discord.app_commands.CommandInvokeError):
+        handle_error(error.original)
 
 
 def _is_ratelimit(error: BaseException) -> bool:

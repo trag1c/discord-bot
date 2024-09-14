@@ -5,9 +5,8 @@ from app.view.github import (
     TesterLink,
     TesterWelcome,
 )
-from app.view.mod import (
-    SelectChannel,
-)
+from app.view.mod import SelectChannel
+from app.view.vouches import DecideVouch
 
 __all__ = (
     "NEW_TESTER_DM",
@@ -16,4 +15,5 @@ __all__ = (
     "TesterLink",
     "TesterWelcome",
     "SelectChannel",
+    "DecideVouch",
 )

@@ -1,8 +1,8 @@
-"""Vouch tracking
+"""Final Vouch model (hopefully)
 
-Revision ID: 68042950fdc1
+Revision ID: 771f389c001a
 Revises: 7351aa8b16db
-Create Date: 2024-09-14 05:01:35.287961+00:00
+Create Date: 2024-09-14 19:33:51.129967+00:00
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "68042950fdc1"
+revision: str = "771f389c001a"
 down_revision: Union[str, None] = "7351aa8b16db"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,11 +23,15 @@ def upgrade() -> None:
     op.create_table(
         "vouches",
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column(
+            "vouch_state",
+            sa.Enum("PENDING", "ACCEPTED", "DENIED", name="vouchstate"),
+            nullable=True,
+        ),
         sa.Column("voucher_id", sa.BigInteger(), nullable=True),
         sa.Column("receiver_id", sa.BigInteger(), nullable=True),
-        sa.Column("approver_id", sa.BigInteger(), nullable=True),
-        sa.Column("vouch_date", sa.DateTime(), nullable=True),
-        sa.Column("is_approved", sa.Boolean(), nullable=True),
+        sa.Column("decider_id", sa.BigInteger(), nullable=True),
+        sa.Column("request_date", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###
