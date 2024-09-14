@@ -3,7 +3,8 @@ from time import sleep
 
 import sentry_sdk
 
-from app.core import bot, config, db
+from app.core import bot, config
+from app.db import connect as db
 
 if config.SENTRY_DSN is not None:
     sentry_sdk.init(

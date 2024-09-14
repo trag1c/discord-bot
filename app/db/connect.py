@@ -25,5 +25,5 @@ def attempt_connect() -> None:
         raise RuntimeError("Failed to connect to the database.")
 
 
-def get_db_session():
+def transaction() -> Session:
     return Session()
