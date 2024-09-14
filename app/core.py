@@ -27,7 +27,10 @@ async def on_error(*_: object) -> None:
 async def on_app_command_error(
     interaction: discord.Interaction, error: Exception
 ) -> None:
-    await interaction.response.send_message("Something went wrong :(", ephemeral=True)
+    if not interaction.response.is_done():
+        await interaction.response.send_message(
+            "Something went wrong :(", ephemeral=True
+        )
     handle_error(error)
 
 
