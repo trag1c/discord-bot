@@ -3,11 +3,11 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from traceback import print_tb
 from typing import cast
 
 import discord
 from discord.ext import commands
+from sentry_sdk import capture_exception
 
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
@@ -19,9 +19,8 @@ async def on_ready() -> None:
 
 
 @bot.event
-async def on_error(event: str, *_args: object, **_kwargs: object) -> None:
-    exc = cast(BaseException, sys.exc_info()[1])
-    handle_error(exc, event_type=event)
+async def on_error(*_: object) -> None:
+    handle_error(cast(BaseException, sys.exc_info()[1]))
 
 
 @bot.tree.error
@@ -78,7 +77,7 @@ async def sync(bot: commands.Bot, message: discord.Message) -> None:
     await message.author.send("Command tree synced.")
 
 
-def handle_error(error: BaseException, *, event_type: str | None = None) -> None:
+def handle_error(error: BaseException) -> None:
     if _is_ratelimit(error):
         # Restart the bot with a delay at startup.
         # This effectively replaces the current process.
@@ -91,15 +90,7 @@ def handle_error(error: BaseException, *, event_type: str | None = None) -> None
                 "--rate-limit-delay",
             ),
         )
-
-    event_info = f" in event {event_type}" if event_type else ""
-    print(
-        f"An error occurred{event_info}",
-        f"> {type(error).__name__}",
-        f"> {error}",
-        sep="\n",
-    )
-    print_tb(error.__traceback__)
+    capture_exception(error)
 
 
 def _is_ratelimit(error: BaseException) -> bool:
