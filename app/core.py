@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from traceback import print_tb
 from typing import cast
 
 import discord
@@ -93,7 +94,13 @@ def handle_error(error: BaseException) -> None:
                 "--rate-limit-delay",
             ),
         )
-    capture_exception(error)
+
+    if config.SENTRY_DSN is not None:
+        capture_exception(error)
+        return
+
+    print(type(error).__name__, "->", error)
+    print_tb(error.__traceback__)
 
 
 def _is_ratelimit(error: BaseException) -> bool:
