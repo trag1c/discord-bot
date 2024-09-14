@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import discord
 from discord import app_commands
@@ -12,9 +12,6 @@ from app.db.connect import Session
 from app.db.utils import fetch_user
 from app.setup import bot, config
 from app.utils import is_dm, is_mod, is_tester, server_only_warning
-
-if TYPE_CHECKING:
-    pass
 
 COOLDOWN_TIME = 604_800  # 1 week
 
