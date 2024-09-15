@@ -4,7 +4,6 @@ import datetime as dt
 from typing import cast
 
 import discord
-from discord import app_commands
 
 from app import view
 from app.db import models
@@ -154,26 +153,9 @@ async def vouch_member(
     )
 
 
-@vouch_member.error
-async def on_vouch_member_error(
-    interaction: discord.Interaction, error: app_commands.AppCommandError
-) -> None:
-    """
-    Handles the rate-limiting for the vouch command.
-    """
-    if isinstance(error, app_commands.CommandOnCooldown):
-        h, m = divmod(int(error.retry_after / 60), 60)
-        d, h = divmod(h, 24)
-        content = f"Vouches are rate-limited per user. Try again in {d}d {h}h {m}m."
-        await interaction.response.send_message(content, ephemeral=True)
-
-
 @bot.tree.command(name="vouch", description="Vouch for a user to join the beta.")
-# @vouch_cooldown
 async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
-    """
-    Same as vouch_member but via a slash command.
-    """
+    """Same as vouch_member but via a slash command."""
     if is_dm(interaction.user):
         await server_only_warning(interaction)
         return

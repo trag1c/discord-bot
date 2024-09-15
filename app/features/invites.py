@@ -51,9 +51,7 @@ async def invite_member(
 @bot.tree.command(name="invite", description="Invite a user to the beta.")
 @discord.app_commands.default_permissions(manage_messages=True)
 async def invite(interaction: discord.Interaction, member: discord.Member) -> None:
-    """
-    Same as invite_member but via a slash command.
-    """
+    """Same as invite_member but via a slash command."""
     await invite_member.callback(interaction, member)
 
 
