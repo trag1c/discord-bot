@@ -3,7 +3,7 @@ from time import sleep
 
 import sentry_sdk
 
-from app.core import bot, config
+from app.core import bot, config, db
 
 if config.SENTRY_DSN is not None:
     sentry_sdk.init(
@@ -19,4 +19,5 @@ if "--rate-limit-delay" in sys.argv:
     )
     sleep(60 * 25)
 
+db.attempt_connect()
 bot.run(config.BOT_TOKEN)
