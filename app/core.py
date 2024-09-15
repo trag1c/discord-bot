@@ -8,6 +8,7 @@ from typing import cast
 
 import discord
 from discord.ext import commands
+from sentry_sdk import capture_exception
 
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
@@ -20,16 +21,18 @@ async def on_ready() -> None:
 
 
 @bot.event
-async def on_error(event: str, *_args: object, **_kwargs: object) -> None:
-    exc = cast(BaseException, sys.exc_info()[1])
-    handle_error(exc, event_type=event)
+async def on_error(*_: object) -> None:
+    handle_error(cast(BaseException, sys.exc_info()[1]))
 
 
 @bot.tree.error
 async def on_app_command_error(
     interaction: discord.Interaction, error: Exception
 ) -> None:
-    await interaction.response.send_message("Something went wrong :(", ephemeral=True)
+    if not interaction.response.is_done():
+        await interaction.response.send_message(
+            "Something went wrong :(", ephemeral=True
+        )
     handle_error(error)
 
 
@@ -80,7 +83,7 @@ async def sync(bot: commands.Bot, message: discord.Message) -> None:
     await message.author.send("Command tree synced.")
 
 
-def handle_error(error: BaseException, *, event_type: str | None = None) -> None:
+def handle_error(error: BaseException) -> None:
     if _is_ratelimit(error):
         # Restart the bot with a delay at startup.
         # This effectively replaces the current process.
@@ -94,13 +97,11 @@ def handle_error(error: BaseException, *, event_type: str | None = None) -> None
             ),
         )
 
-    event_info = f" in event {event_type}" if event_type else ""
-    print(
-        f"An error occurred{event_info}",
-        f"> {type(error).__name__}",
-        f"> {error}",
-        sep="\n",
-    )
+    if config.SENTRY_DSN is not None:
+        capture_exception(error)
+        return
+
+    print(type(error).__name__, "->", error)
     print_tb(error.__traceback__)
 
 
