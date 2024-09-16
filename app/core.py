@@ -13,7 +13,7 @@ from sentry_sdk import capture_exception
 from app.db.utils import import_user
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
-from app.utils import is_mod
+from app.utils import is_dm, is_mod
 
 
 @bot.event
@@ -85,7 +85,7 @@ async def on_member_update(before: discord.Member, after: discord.Member) -> Non
 
 async def sync(bot: commands.Bot, message: discord.Message) -> None:
     """Syncs all global commands."""
-    if not is_mod(message.author):
+    if is_dm(message.author) or not is_mod(message.author):
         return
 
     await bot.tree.sync()
