@@ -21,8 +21,8 @@ class DecideVouch(discord.ui.View):
             discord.Object(config.TESTER_ROLE_ID),
             reason="accepted vouch",
         )
-        await member.send(view.NEW_TESTER_DM)
         await self._handle_vouch_decision(interaction, models.VouchState.ACCEPTED)
+        await member.send(view.NEW_TESTER_DM)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.red)
     async def deny(

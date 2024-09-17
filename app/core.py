@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 import os
 import sys
 from pathlib import Path
@@ -10,7 +11,8 @@ import discord
 from discord.ext import commands
 from sentry_sdk import capture_exception
 
-from app.db.utils import import_user
+from app.db.connect import Session
+from app.db.utils import fetch_user
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
 from app.utils import is_dm, is_mod
@@ -80,7 +82,13 @@ async def on_member_update(before: discord.Member, after: discord.Member) -> Non
     if not (new_roles := set(after.roles) - set(before.roles)):
         return
     if next(iter(new_roles)).id == config.TESTER_ROLE_ID:
-        import_user(after, new_user=True)
+        user = fetch_user(after)
+        if user.tester_since is None:
+            with Session() as session:
+                user.tester_since = dt.datetime.now(tz=dt.UTC)
+                user.is_vouch_blacklisted = False
+                session.add(user)
+                session.commit()
 
 
 async def sync(bot: commands.Bot, message: discord.Message) -> None:

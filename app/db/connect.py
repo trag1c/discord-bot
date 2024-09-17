@@ -11,7 +11,8 @@ engine = create_engine(
     client_encoding="utf8",
 )
 
-Session = sessionmaker(bind=engine)
+# Expire on commit lets us access objects after committing them
+Session = sessionmaker(bind=engine, expire_on_commit=False)
 
 
 def attempt_connect() -> None:
