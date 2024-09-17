@@ -6,7 +6,7 @@ from discord import Message
 from app.setup import config, gh
 from app.utils import is_dm, is_tester
 
-ISSUE_REGEX = re.compile(r"#(\d{2,})(?!\.\d)\b")
+ISSUE_REGEX = re.compile(r"#(\d{2,6})(?!\.\d)\b")
 ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
 
 
