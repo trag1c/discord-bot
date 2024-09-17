@@ -1,18 +1,18 @@
 from __future__ import annotations
 
+import datetime as dt
 import os
 import sys
 from pathlib import Path
 from traceback import print_tb
 from typing import cast
-import datetime as dt
 
 import discord
 from discord.ext import commands
 from sentry_sdk import capture_exception
 
-from app.db.utils import fetch_user
 from app.db.connect import Session
+from app.db.utils import fetch_user
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
 from app.utils import is_dm, is_mod
