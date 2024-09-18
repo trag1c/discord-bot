@@ -15,7 +15,7 @@ from app.db.connect import Session
 from app.db.utils import fetch_user
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
-from app.utils import is_dm, is_mod
+from app.utils import is_dm, is_mod, try_dm
 
 
 @bot.event
@@ -61,7 +61,7 @@ async def on_message(message: discord.Message) -> None:
 
     # Simple test
     if message.guild is None and message.content == "ping":
-        await message.author.send("pong")
+        await try_dm(message.author, "pong")
         return
 
     # Look for issue numbers and link them
@@ -97,7 +97,7 @@ async def sync(bot: commands.Bot, message: discord.Message) -> None:
         return
 
     await bot.tree.sync()
-    await message.author.send("Command tree synced.")
+    await try_dm(message.author, "Command tree synced.")
 
 
 def handle_error(error: BaseException) -> None:

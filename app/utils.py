@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+from textwrap import shorten
 
 import discord
 from typing_extensions import TypeIs
@@ -109,3 +110,10 @@ def is_mod(member: discord.Member) -> bool:
 
 def has_linked_github(member: discord.Member) -> bool:
     return _has_role(member, config.GITHUB_ROLE_ID)
+
+
+async def try_dm(user: discord.User | discord.Member, content: str) -> None:
+    try:
+        await user.send(content)
+    except discord.Forbidden:
+        print(f"Failed to DM {user} with: {shorten(content, width=50)}")
