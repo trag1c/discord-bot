@@ -15,7 +15,7 @@ def fetch_user(user: discord.Member) -> models.User:
 
 def get_user(user: discord.Member) -> models.User | None:
     """Fetches a user from the database."""
-    with Session(expire_on_commit=False) as session:
+    with Session() as session:
         return (
             session.query(models.User)
             .filter(models.User.user_id == user.id)
@@ -35,7 +35,7 @@ def import_user(user: discord.Member, *, new_user: bool = False) -> models.User:
     if not new_user:
         since -= dt.timedelta(weeks=1)
 
-    with Session(expire_on_commit=False) as session:
+    with Session() as session:
         db_user = models.User(
             user_id=user.id,
             tester_since=since if is_tester(user) else None,

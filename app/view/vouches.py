@@ -17,11 +17,11 @@ class DecideVouch(discord.ui.View):
     ) -> None:
         guild = await bot.fetch_guild(config.GUILD_ID)
         member = await guild.fetch_member(self._vouch.receiver_id)
+        await self._handle_vouch_decision(interaction, models.VouchState.ACCEPTED)
         await member.add_roles(
             discord.Object(config.TESTER_ROLE_ID),
             reason="accepted vouch",
         )
-        await self._handle_vouch_decision(interaction, models.VouchState.ACCEPTED)
         await member.send(view.NEW_TESTER_DM)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.red)

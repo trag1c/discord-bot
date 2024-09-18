@@ -35,7 +35,7 @@ async def blacklist_vouch_member(
 
     db_user.is_vouch_blacklisted = not db_user.is_vouch_blacklisted
 
-    with Session(expire_on_commit=False) as session:
+    with Session() as session:
         session.add(db_user)
         session.commit()
 
@@ -127,7 +127,7 @@ async def vouch_member(
         f"{interaction.user.mention} vouched for {member.mention} to join the beta."
     )
 
-    with Session(expire_on_commit=False) as session:
+    with Session() as session:
         vouch_count = (
             session.query(models.Vouch)
             .filter_by(voucher_id=interaction.user.id)
