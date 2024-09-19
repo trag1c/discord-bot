@@ -33,8 +33,6 @@ async def blacklist_vouch_member(
 
     db_user = fetch_user(member)
 
-    db_user.is_vouch_blacklisted = not db_user.is_vouch_blacklisted
-
     with Session() as session:
         session.add(db_user)
         session.commit()
