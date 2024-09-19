@@ -7,9 +7,9 @@ from app.db.connect import Session
 from app.utils import is_tester
 
 
-def fetch_user(user: discord.Member) -> models.User:
+def fetch_user(user: discord.Member, *, new_user: bool = False) -> models.User:
     if (db_user := get_user(user)) is None:
-        db_user = import_user(user)
+        db_user = import_user(user, new_user=new_user)
     return db_user
 
 

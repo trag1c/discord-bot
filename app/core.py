@@ -82,7 +82,7 @@ async def on_member_update(before: discord.Member, after: discord.Member) -> Non
     if not (new_roles := set(after.roles) - set(before.roles)):
         return
     if next(iter(new_roles)).id == config.TESTER_ROLE_ID:
-        user = fetch_user(after)
+        user = fetch_user(after, new_user=True)
         if user.tester_since is None:
             with Session() as session:
                 user.tester_since = dt.datetime.now(tz=dt.UTC)
