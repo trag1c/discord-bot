@@ -1,5 +1,5 @@
 import datetime as dt
-from pathlib import Path
+from io import BytesIO
 from typing import cast
 
 import discord
@@ -28,16 +28,15 @@ async def beta_waitlist(interaction: discord.Interaction, n: int) -> None:
     # Apparently joined_at can be None "in certain cases" :)
     waitlist.sort(key=lambda m: cast(dt.datetime, m.joined_at))
 
-    path = Path(filename := f"beta-waitlist-top{n}.csv")
-    path.write_text(
-        "\n".join(
-            f"{member.name},{member.joined_at:%Y-%m-%dT%H:%M:%S}" for member in waitlist
+    buf = BytesIO(
+        b"\n".join(
+            f"{member.name},{member.joined_at:%Y-%m-%dT%H:%M:%S}".encode()
+            for member in waitlist
         )
     )
     await interaction.response.send_message(
         content=f"**Note:** Found only {len(waitlist)} entries."
         if len(waitlist) != n
         else None,
-        file=discord.File(path, filename),
+        file=discord.File(buf, f"beta-waitlist-top{n}.csv"),
     )
-    path.unlink()
