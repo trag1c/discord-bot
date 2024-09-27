@@ -15,6 +15,35 @@ from app.utils import is_dm, is_mod, is_tester, server_only_warning
 COOLDOWN_TIME = 604_800  # 1 week
 
 
+@bot.tree.context_menu(name="Check vouch blacklist")
+@discord.app_commands.default_permissions(manage_messages=True)
+async def check_blacklist(
+    interaction: discord.Interaction, member: discord.User
+) -> None:
+    if is_dm(interaction.user):
+        await server_only_warning(interaction)
+        return
+
+    db_user = fetch_user(member)
+
+    await interaction.response.send_message(
+        f"{member.mention} is "
+        + ("not " * (not db_user.is_vouch_blacklisted))
+        + "blacklisted from vouching.",
+        ephemeral=True,
+    )
+
+
+@bot.tree.command(
+    name="check-blacklist", description="Check if a user is blacklisted from vouching."
+)
+@discord.app_commands.default_permissions(manage_messages=True)
+async def check_blacklist_command(
+    interaction: discord.Interaction, member: discord.User
+) -> None:
+    await check_blacklist.callback(interaction, member)
+
+
 @bot.tree.context_menu(name="Blacklist from vouching")
 @discord.app_commands.default_permissions(manage_messages=True)
 async def blacklist_vouch_member(
