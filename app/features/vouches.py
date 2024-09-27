@@ -26,7 +26,7 @@ async def blacklist_vouch_member(
 
     if not is_mod(interaction.user):
         await interaction.response.send_message(
-            "You do not have permission to blacklist users from being vouched for.",
+            "You do not have permission to blacklist users from vouching.",
             ephemeral=True,
         )
         return
@@ -46,9 +46,7 @@ async def blacklist_vouch_member(
     )
 
 
-@bot.tree.command(
-    name="blacklist-vouch", description="Blacklist a user from being vouched for."
-)
+@bot.tree.command(name="blacklist-vouch", description="Blacklist a user from vouching.")
 @discord.app_commands.default_permissions(manage_messages=True)
 async def blacklist_vouch(
     interaction: discord.Interaction, member: discord.User
