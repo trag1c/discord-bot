@@ -18,15 +18,15 @@ async def beta_waitlist(interaction: discord.Interaction, n: int) -> None:
         await server_only_warning(interaction)
         return
 
-    members_iter = iter(interaction.guild.members)
-    waitlist: list[discord.Member] = []
-    while len(waitlist) < n and (member := next(members_iter, None)) is not None:
-        if member.bot or is_tester(member):
-            continue
-        waitlist.append(member)
-
-    # Apparently joined_at can be None "in certain cases" :)
-    waitlist.sort(key=lambda m: cast(dt.datetime, m.joined_at))
+    waitlist = sorted(
+        (
+            member
+            for member in interaction.guild.members
+            if not (member.bot or is_tester(member))
+        ),
+        # Apparently joined_at can be None "in certain cases" :)
+        key=lambda m: cast(dt.datetime, m.joined_at),
+    )[:n]
 
     buf = BytesIO(
         b"\n".join(
