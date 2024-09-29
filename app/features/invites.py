@@ -2,7 +2,14 @@ import discord
 
 from app import view
 from app.setup import bot, config
-from app.utils import has_linked_github, is_dm, is_mod, is_tester, server_only_warning
+from app.utils import (
+    has_linked_github,
+    is_dm,
+    is_mod,
+    is_tester,
+    server_only_warning,
+    try_dm,
+)
 
 
 @bot.tree.context_menu(name="Invite to Beta")
@@ -41,7 +48,7 @@ async def invite_member(
         discord.Object(config.TESTER_ROLE_ID),
         reason="invite to beta context menu",
     )
-    await member.send(view.NEW_TESTER_DM)
+    await try_dm(member, view.NEW_TESTER_DM)
 
     await interaction.response.send_message(
         f"Added {member} as a tester.", ephemeral=True

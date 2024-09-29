@@ -4,6 +4,7 @@ from app import view
 from app.db import models
 from app.db.connect import Session
 from app.setup import bot, config
+from app.utils import try_dm
 
 
 class DecideVouch(discord.ui.View):
@@ -22,7 +23,7 @@ class DecideVouch(discord.ui.View):
             discord.Object(config.TESTER_ROLE_ID),
             reason="accepted vouch",
         )
-        await member.send(view.NEW_TESTER_DM)
+        await try_dm(member, view.NEW_TESTER_DM)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.red)
     async def deny(
