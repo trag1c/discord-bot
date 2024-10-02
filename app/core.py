@@ -16,10 +16,12 @@ from app.db.utils import fetch_user
 from app.features.issues import ISSUE_REGEX, handle_issues
 from app.setup import bot, config
 from app.utils import is_dm, is_mod, try_dm
+from app.view import register_vouch_view
 
 
 @bot.event
 async def on_ready() -> None:
+    register_vouch_view()
     print(f"Bot logged on as {bot.user}!")
 
 

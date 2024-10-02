@@ -148,9 +148,7 @@ async def vouch_member(
         return
 
     channel = await bot.fetch_channel(config.MOD_CHANNEL_ID)
-    content = (
-        f"{interaction.user.mention} vouched for {member.mention} to join the beta."
-    )
+    content = f"{interaction.user.mention} vouched for {member.mention} to join the beta."
 
     with Session() as session:
         vouch_count = (
@@ -169,9 +167,15 @@ async def vouch_member(
         session.add(db_vouch)
         session.commit()
 
-    await cast(discord.TextChannel, channel).send(
+    msg = await cast(discord.TextChannel, channel).send(
         content=content, view=view.DecideVouch(vouch=db_vouch)
     )
+
+    # Store the message ID so we can track this vouch later
+    with Session() as session:
+        db_vouch.interaction_id = msg.id
+        session.add(db_vouch)
+        session.commit()
 
     await interaction.response.send_message(
         f"Vouched for {member.mention} as a tester.", ephemeral=True

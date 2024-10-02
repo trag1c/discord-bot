@@ -2,7 +2,7 @@ import datetime as dt
 import enum
 from functools import partial
 
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, Enum, Integer
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, Enum, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -34,6 +34,8 @@ class Vouch(Base):
     receiver_id = Column(BigInteger)
     decider_id = Column(BigInteger, nullable=True, default=None)
     request_date = Column(DateTime, default=partial(dt.datetime.now, tz=dt.UTC))
+    interaction_id = Column(BigInteger, nullable=True, default=None)
+    reason = Column(String, nullable=True, default=None)
 
     def __repr__(self) -> str:
         return f"<Vouch id={self.id} voucher_id={self.voucher_id} receiver_id={self.receiver_id}>"
