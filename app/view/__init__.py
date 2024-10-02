@@ -6,7 +6,7 @@ from app.view.github import (
     TesterWelcome,
 )
 from app.view.mod import SelectChannel
-from app.view.vouches import DecideVouch
+from app.view.vouches import DecideVouch, register_vouch_view
 
 __all__ = (
     "NEW_TESTER_DM",
@@ -16,4 +16,5 @@ __all__ = (
     "TesterWelcome",
     "SelectChannel",
     "DecideVouch",
+    "register_vouch_view",
 )
