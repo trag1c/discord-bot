@@ -12,7 +12,7 @@ class SelectChannel(discord.ui.View):
 
     @discord.ui.select(
         cls=discord.ui.ChannelSelect,
-        channel_types=[discord.ChannelType.text],
+        channel_types=[discord.ChannelType.text, discord.ChannelType.public_thread],
         placeholder="Select a channel",
         min_values=1,
         max_values=1,
@@ -27,8 +27,13 @@ class SelectChannel(discord.ui.View):
             )
             return
 
-        webhook = await get_or_create_webhook("Ghostty Moderator", channel)
-        await move_message_via_webhook(webhook, self.message, self.executor)
+        webhook_channel, thread = (
+            (channel.parent, channel)
+            if isinstance(channel, discord.Thread)
+            else (channel, discord.utils.MISSING)
+        )
+        webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
+        await move_message_via_webhook(webhook, self.message, self.executor, thread)
         await interaction.response.edit_message(
             content=f"Moved the message to {channel.mention}.", view=None
         )
