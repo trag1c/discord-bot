@@ -36,6 +36,7 @@ async def move_message_via_webhook(
     webhook: discord.Webhook,
     message: discord.Message,
     executor: discord.Member | None = None,
+    thread: discord.abc.Snowflake = discord.utils.MISSING,
 ) -> None:
     content = message.content
     uploads = []
@@ -87,6 +88,7 @@ async def move_message_via_webhook(
         avatar_url=message.author.display_avatar.url,
         allowed_mentions=discord.AllowedMentions.none(),
         files=uploads,
+        thread=thread,
     )
 
     await message.delete()

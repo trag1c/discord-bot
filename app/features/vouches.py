@@ -148,7 +148,9 @@ async def vouch_member(
         return
 
     channel = await bot.fetch_channel(config.MOD_CHANNEL_ID)
-    content = f"{interaction.user.mention} vouched for {member.mention} to join the beta."
+    content = (
+        f"{interaction.user.mention} vouched for {member.mention} to join the beta."
+    )
 
     with Session() as session:
         vouch_count = (
