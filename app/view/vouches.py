@@ -55,7 +55,9 @@ class DecideVouch(discord.ui.View):
 
         from app.features.invites import log_invite  # avoiding a circular import
 
-        await log_invite(interaction.user, member, voucher_id=self._vouch.voucher_id)
+        await log_invite(
+            interaction.user, member, note=f"vouched by <@{self._vouch.voucher_id}>"
+        )
 
         await try_dm(member, view.NEW_TESTER_DM)
 

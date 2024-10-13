@@ -17,14 +17,14 @@ from app.utils import (
 async def log_invite(
     inviter: discord.Member | discord.User,
     invitee: discord.Member,
-    voucher_id: int | None = None,
+    note: str = "",
 ) -> None:
     channel = cast(
         discord.TextChannel, await bot.fetch_channel(config.INVITELOG_CHANNEL_ID)
     )
     content = f"{inviter.mention} invited {invitee.mention} to the beta"
-    if voucher_id is not None:
-        content += f" (vouched by <@{voucher_id}>)"
+    if note:
+        content += f" ({note})"
     await channel.send(content, allowed_mentions=discord.AllowedMentions.none())
 
 
