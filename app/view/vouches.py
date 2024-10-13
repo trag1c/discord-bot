@@ -53,7 +53,7 @@ class DecideVouch(discord.ui.View):
             reason="accepted vouch",
         )
 
-        from app.features.invites import log_invite  # avoiding a  circular import
+        from app.features.invites import log_invite  # avoiding a circular import
 
         await log_invite(interaction.user, member, voucher_id=self._vouch.voucher_id)
 
