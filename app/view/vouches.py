@@ -32,6 +32,7 @@ class DecideVouch(discord.ui.View):
         self, interaction: discord.Interaction, but: discord.ui.Button
     ) -> None:
         self._populate_missing_vouch(interaction)
+        assert self._vouch is not None
         guild = await bot.fetch_guild(config.GUILD_ID)
         member = await guild.fetch_member(self._vouch.receiver_id)
 
@@ -50,6 +51,12 @@ class DecideVouch(discord.ui.View):
         await member.add_roles(
             discord.Object(config.TESTER_ROLE_ID),
             reason="accepted vouch",
+        )
+
+        from app.features.invites import log_invite  # avoiding a circular import
+
+        await log_invite(
+            interaction.user, member, note=f"vouched by <@{self._vouch.voucher_id}>"
         )
 
         await try_dm(member, view.NEW_TESTER_DM)

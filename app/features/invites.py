@@ -1,3 +1,5 @@
+from typing import cast
+
 import discord
 
 from app import view
@@ -10,6 +12,20 @@ from app.utils import (
     server_only_warning,
     try_dm,
 )
+
+
+async def log_invite(
+    inviter: discord.Member | discord.User,
+    invitee: discord.Member,
+    note: str = "",
+) -> None:
+    channel = cast(
+        discord.TextChannel, await bot.fetch_channel(config.INVITELOG_CHANNEL_ID)
+    )
+    content = f"{inviter.mention} invited {invitee.mention} to the beta"
+    if note:
+        content += f" ({note})"
+    await channel.send(content, allowed_mentions=discord.AllowedMentions.none())
 
 
 @bot.tree.context_menu(name="Invite to Beta")
@@ -53,6 +69,7 @@ async def invite_member(
     await interaction.response.send_message(
         f"Added {member} as a tester.", ephemeral=True
     )
+    await log_invite(interaction.user, member)
 
 
 @bot.tree.command(name="invite", description="Invite a user to the beta.")
