@@ -77,8 +77,7 @@ async def move_message_via_webhook(
         subtext += f" Moved from {message.channel.mention} by {executor.mention}"
     if skipped:
         subtext += f" (skipped {skipped} large attachment(s))"
-    if subtext:
-        content += f"\n-#{subtext}"
+    content += "".join(f"\n-# {line.lstrip()}" for line in subtext.splitlines())
 
     # We have validated ahead of time that this is a discord.Member
     # So we can safely access server-specific attributes
