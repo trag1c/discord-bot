@@ -16,6 +16,7 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
   repository(owner: $org, name: $repo) {
     discussion(number: $number) {
       title
+      number
       html_url: url
     }
   }
@@ -72,4 +73,4 @@ def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
         },
     )
     data = response["data"]["repository"]["discussion"]
-    return SimpleNamespace(**data, number=number)
+    return SimpleNamespace(**data)
