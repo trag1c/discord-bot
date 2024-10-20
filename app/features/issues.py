@@ -1,13 +1,26 @@
 import re
+from types import SimpleNamespace
 
 import github
 from discord import Message
+from github.Repository import Repository
 
 from app.setup import config, gh
 from app.utils import is_dm, is_tester, try_dm
 
 ISSUE_REGEX = re.compile(r"#(\d{2,6})(?!\.\d)\b")
 ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
+
+DISCUSSION_QUERY = """
+query getDiscussion($number: Int!, $org: String!, $repo: String!) {
+  repository(owner: $org, name: $repo) {
+    discussion(number: $number) {
+      title
+      url
+    }
+  }
+}
+""".strip()
 
 
 async def handle_issues(message: Message) -> None:
@@ -31,14 +44,33 @@ async def handle_issues(message: Message) -> None:
 
     issues = set()
     for match in ISSUE_REGEX.finditer(message.content):
+        id_ = int(match[1])
         try:
-            issue = repo.get_issue(int(match[1]))
+            issue = repo.get_issue(id_)
+            kind = "Pull Request" if issue.pull_request else "Issue"
         except github.UnknownObjectException:
-            continue
-        kind = "Pull Request" if issue.pull_request else "Issue"
+            try:
+                issue = get_discussion(repo, id_)
+                kind = "Discussion"
+            except github.GithubException:
+                continue
         issues.add(ISSUE_TEMPLATE.format(kind=kind, issue=issue))
 
     if not issues:
         return
 
     await message.reply("\n".join(issues), mention_author=False)
+
+
+def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
+    _, response = repo._requester.graphql_query(
+        query=DISCUSSION_QUERY,
+        variables={
+            "number": number,
+            "org": config.GITHUB_ORG,
+            "repo": config.GITHUB_REPO,
+        },
+    )
+    data = response["data"]["repository"]["discussion"]
+    data["html_url"] = data.pop("url")
+    return SimpleNamespace(**data, number=number)
