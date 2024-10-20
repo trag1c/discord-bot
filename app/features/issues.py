@@ -21,7 +21,7 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
     }
   }
 }
-""".strip()
+"""
 
 
 async def handle_issues(message: Message) -> None:
