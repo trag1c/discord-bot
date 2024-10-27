@@ -5,11 +5,11 @@ import discord
 from app import view
 from app.setup import bot, config
 from app.utils import (
+    SERVER_ONLY,
     has_linked_github,
     is_dm,
     is_mod,
     is_tester,
-    server_only_warning,
     try_dm,
 )
 
@@ -30,6 +30,7 @@ async def log_invite(
 
 @bot.tree.context_menu(name="Invite to Beta")
 @discord.app_commands.default_permissions(manage_messages=True)
+@SERVER_ONLY
 async def invite_member(
     interaction: discord.Interaction, member: discord.Member
 ) -> None:
@@ -38,9 +39,7 @@ async def invite_member(
 
     This can only be invoked by a mod.
     """
-    if is_dm(interaction.user):
-        await server_only_warning(interaction)
-        return
+    assert not is_dm(interaction.user)
 
     if not is_mod(interaction.user):
         await interaction.response.send_message(
@@ -74,20 +73,20 @@ async def invite_member(
 
 @bot.tree.command(name="invite", description="Invite a user to the beta.")
 @discord.app_commands.default_permissions(manage_messages=True)
+@SERVER_ONLY
 async def invite(interaction: discord.Interaction, member: discord.Member) -> None:
     """Same as invite_member but via a slash command."""
     await invite_member.callback(interaction, member)
 
 
 @bot.tree.command(name="accept-invite", description="Accept a pending tester invite.")
+@SERVER_ONLY
 async def accept_invite(interaction: discord.Interaction) -> None:
     """
     Accept the tester invite. This should be invoked by someone who was
     invited to the beta to complete setup with GitHub.
     """
-    if is_dm(interaction.user):
-        await server_only_warning(interaction)
-        return
+    assert not is_dm(interaction.user)
 
     if not is_tester(interaction.user):
         await interaction.response.send_message(

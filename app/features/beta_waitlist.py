@@ -5,7 +5,7 @@ from typing import cast
 import discord
 
 from app.setup import bot
-from app.utils import is_tester, server_only_warning
+from app.utils import SERVER_ONLY, is_tester
 
 
 @bot.tree.command(
@@ -13,10 +13,9 @@ from app.utils import is_tester, server_only_warning
     description="Show oldest N members waiting for an invite.",
 )
 @discord.app_commands.default_permissions(manage_messages=True)
+@SERVER_ONLY
 async def beta_waitlist(interaction: discord.Interaction, n: int) -> None:
-    if interaction.guild is None:
-        await server_only_warning(interaction)
-        return
+    assert interaction.guild is not None
 
     waitlist = sorted(
         (

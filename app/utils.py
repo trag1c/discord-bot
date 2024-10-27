@@ -11,11 +11,9 @@ from app.setup import config
 MAX_ATTACHMENT_SIZE = 67_108_864  # 64 MiB
 
 
-async def server_only_warning(interaction: discord.Interaction) -> None:
-    await interaction.response.send_message(
-        "This command must be run from the Ghostty server, not a DM.",
-        ephemeral=True,
-    )
+SERVER_ONLY = discord.app_commands.allowed_contexts(
+    guilds=True, dms=False, private_channels=False
+)
 
 
 async def get_or_create_webhook(
