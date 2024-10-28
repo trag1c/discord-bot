@@ -10,19 +10,18 @@ from app.db import models
 from app.db.connect import Session
 from app.db.utils import fetch_user
 from app.setup import bot, config
-from app.utils import is_dm, is_mod, is_tester, server_only_warning
+from app.utils import SERVER_ONLY, is_dm, is_mod, is_tester
 
 COOLDOWN_TIME = 604_800  # 1 week
 
 
 @bot.tree.context_menu(name="Check vouch blacklist")
 @discord.app_commands.default_permissions(manage_messages=True)
+@SERVER_ONLY
 async def check_blacklist(
     interaction: discord.Interaction, member: discord.User
 ) -> None:
-    if is_dm(interaction.user):
-        await server_only_warning(interaction)
-        return
+    assert not is_dm(interaction.user)
 
     db_user = fetch_user(member)
 
@@ -38,6 +37,7 @@ async def check_blacklist(
     name="check-blacklist", description="Check if a user is blacklisted from vouching."
 )
 @discord.app_commands.default_permissions(manage_messages=True)
+@SERVER_ONLY
 async def check_blacklist_command(
     interaction: discord.Interaction, member: discord.User
 ) -> None:
@@ -46,12 +46,11 @@ async def check_blacklist_command(
 
 @bot.tree.context_menu(name="Blacklist from vouching")
 @discord.app_commands.default_permissions(manage_messages=True)
+@SERVER_ONLY
 async def blacklist_vouch_member(
     interaction: discord.Interaction, member: discord.User
 ) -> None:
-    if is_dm(interaction.user):
-        await server_only_warning(interaction)
-        return
+    assert not is_dm(interaction.user)
 
     if not is_mod(interaction.user):
         await interaction.response.send_message(
@@ -75,6 +74,7 @@ async def blacklist_vouch_member(
 
 @bot.tree.command(name="blacklist-vouch", description="Blacklist a user from vouching.")
 @discord.app_commands.default_permissions(manage_messages=True)
+@SERVER_ONLY
 async def blacklist_vouch(
     interaction: discord.Interaction, member: discord.User
 ) -> None:
@@ -82,15 +82,14 @@ async def blacklist_vouch(
 
 
 @bot.tree.context_menu(name="Vouch for Beta")
+@SERVER_ONLY
 async def vouch_member(
     interaction: discord.Interaction, member: discord.Member
 ) -> None:
     """
     Adds a context menu item to a user to vouch for them to join the beta.
     """
-    if is_dm(interaction.user):
-        await server_only_warning(interaction)
-        return
+    assert not is_dm(interaction.user)
 
     if not is_tester(interaction.user):
         await interaction.response.send_message(
@@ -185,11 +184,10 @@ async def vouch_member(
 
 
 @bot.tree.command(name="vouch", description="Vouch for a user to join the beta.")
+@SERVER_ONLY
 async def vouch(interaction: discord.Interaction, member: discord.User) -> None:
     """Same as vouch_member but via a slash command."""
-    if is_dm(interaction.user):
-        await server_only_warning(interaction)
-        return
+    assert not is_dm(interaction.user)
     await vouch_member.callback(interaction, member)
 
 
