@@ -41,20 +41,20 @@ async def invite_member(
     """
     assert not is_dm(interaction.user)
 
+    await interaction.response.defer(thinking=True, ephemeral=True)
+
     if not is_mod(interaction.user):
-        await interaction.response.send_message(
+        await interaction.followup.send(
             "You do not have permission to invite new testers.", ephemeral=True
         )
         return
 
     if member.bot:
-        await interaction.response.send_message(
-            "Bots can't be testers.", ephemeral=True
-        )
+        await interaction.followup.send("Bots can't be testers.", ephemeral=True)
         return
 
     if is_tester(member):
-        await interaction.response.send_message(
+        await interaction.followup.send(
             "This user is already a tester.", ephemeral=True
         )
         return
@@ -65,9 +65,7 @@ async def invite_member(
     )
     await try_dm(member, view.NEW_TESTER_DM)
 
-    await interaction.response.send_message(
-        f"Added {member} as a tester.", ephemeral=True
-    )
+    await interaction.followup.send(f"Added {member} as a tester.", ephemeral=True)
     await log_invite(interaction.user, member)
 
 
