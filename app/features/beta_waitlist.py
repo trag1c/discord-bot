@@ -4,8 +4,9 @@ from typing import cast
 
 import discord
 
+from app import view
 from app.setup import bot
-from app.utils import SERVER_ONLY, is_tester
+from app.utils import SERVER_ONLY, is_dm, is_mod, is_tester
 
 
 @bot.tree.command(
@@ -38,4 +39,26 @@ async def beta_waitlist(interaction: discord.Interaction, n: int) -> None:
         if len(waitlist) != n
         else None,
         file=discord.File(buf, f"beta-waitlist-top{n}.csv"),
+    )
+
+
+@bot.tree.context_menu(name="Bulk invite")
+@discord.app_commands.default_permissions(manage_messages=True)
+@SERVER_ONLY
+async def bulk_invite(
+    interaction: discord.Interaction, message: discord.Message
+) -> None:
+    assert not is_dm(interaction.user)
+
+    if not is_mod(interaction.user):
+        await interaction.response.send_message(
+            "You do not have permission to invite new testers.", ephemeral=True
+        )
+
+    mentions = cast(list[discord.Member], message.mentions)
+    prompt = f"Are you sure you want to invite {len(mentions)} members?"
+    await interaction.response.send_message(
+        prompt,
+        view=view.ConfirmBulkInvite(mentions, message, prompt),
+        ephemeral=True,
     )
