@@ -54,6 +54,7 @@ async def bulk_invite(
         await interaction.response.send_message(
             "You do not have permission to invite new testers.", ephemeral=True
         )
+        return
 
     mentions = cast(list[discord.Member], message.mentions)
     prompt = f"Are you sure you want to invite {len(mentions)} members?"
