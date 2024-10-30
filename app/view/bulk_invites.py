@@ -30,7 +30,8 @@ class ConfirmBulkInvite(discord.ui.View):
         self._used = True
         await interaction.response.defer(thinking=True, ephemeral=True)
 
-        for invited, member in enumerate(filterfalse(is_tester, self._members), 1):
+        invited_members = set[discord.Member]()
+        for member in filterfalse(is_tester, self._members):
             await member.add_roles(
                 discord.Object(config.TESTER_ROLE_ID),
                 reason="invite to beta context menu",
@@ -41,10 +42,12 @@ class ConfirmBulkInvite(discord.ui.View):
                 member,
                 note=f"bulk invite at {self._message.jump_url}",
             )
+            invited_members.add(member)
 
-        content = f"Invited {invited} members."
-        if already_testers := len(self._members) - invited:
-            content += f" {already_testers} were already testers."
+        content = f"Invited {len(invited_members)} members."
+        if already_testers := set(self._members) - invited_members:
+            content += f" {len(already_testers)} were already testers: "
+            content += " ".join(member.mention for member in already_testers)
 
         await interaction.followup.send(content=content, ephemeral=True)
 
