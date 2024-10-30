@@ -17,6 +17,7 @@ from app.utils import (
 async def log_invite(
     inviter: discord.Member | discord.User,
     invitee: discord.Member,
+    *,
     note: str = "",
 ) -> None:
     channel = cast(
