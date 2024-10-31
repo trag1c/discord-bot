@@ -10,7 +10,7 @@ from app.utils import is_dm, is_tester, try_dm
 
 REPO_URL = "https://github.com/ghostty-org/ghostty/"
 ENTITY_REGEX = re.compile(
-    rf"({REPO_URL}(?:issues|pull|discussions)/|#)(\d{{2,6}})(?!\.\d)\b"
+    rf"({REPO_URL}(?:issues|pull|discussions)/|#)(\d{{,6}})(?!\.\d)\b"
 )
 ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n"
 
@@ -41,10 +41,7 @@ async def handle_entities(message: Message) -> None:
     if not is_tester(message.author):
         return
 
-    repo = gh.get_repo(
-        f"{config.GITHUB_ORG}/{config.GITHUB_REPO}",
-        lazy=True,
-    )
+    repo = gh.get_repo(f"{config.GITHUB_ORG}/{config.GITHUB_REPO}", lazy=True)
 
     entities: list[str] = []
     for match in ENTITY_REGEX.finditer(message.content):
@@ -59,10 +56,11 @@ async def handle_entities(message: Message) -> None:
             except github.GithubException:
                 continue
         entity_info = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
-        entities.append(
-            # Include a URL if the entity is mentioned by number
-            f"{entity_info}{entity.html_url}\n" if match[1] == "#" else entity_info
-        )
+        if match[1] == "#":  # Entity is referenced by number
+            if id_ < 10:  # Ignore single-digit mentions (likely a false positive)
+                continue
+            entity_info += f"{entity.html_url}\n"
+        entities.append(entity_info)
 
     if not entities:
         return
