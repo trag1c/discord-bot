@@ -46,7 +46,7 @@ async def handle_entities(message: Message) -> None:
         lazy=True,
     )
 
-    entities = set()
+    entities: list[str] = []
     for match in ENTITY_REGEX.finditer(message.content):
         id_ = int(match[2])
         try:
@@ -59,7 +59,7 @@ async def handle_entities(message: Message) -> None:
             except github.GithubException:
                 continue
         entity_info = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
-        entities.add(
+        entities.append(
             # Include a URL if the entity is mentioned by number
             f"{entity_info}{entity.html_url}\n" if match[1] == "#" else entity_info
         )
@@ -67,7 +67,7 @@ async def handle_entities(message: Message) -> None:
     if not entities:
         return
 
-    await message.reply("\n".join(entities), mention_author=False)
+    await message.reply("\n".join(dict.fromkeys(entities)), mention_author=False)
 
 
 def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
