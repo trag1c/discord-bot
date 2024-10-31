@@ -8,8 +8,11 @@ from github.Repository import Repository
 from app.setup import config, gh
 from app.utils import is_dm, is_tester, try_dm
 
-ENTITY_REGEX = re.compile(r"#(\d{2,6})(?!\.\d)\b")
-ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n{entity.html_url}\n"
+REPO_URL = "https://github.com/ghostty-org/ghostty/"
+ENTITY_REGEX = re.compile(
+    rf"({REPO_URL}(?:issues|pull|discussions)/|#)(\d{{2,6}})(?!\.\d)\b"
+)
+ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n"
 
 DISCUSSION_QUERY = """
 query getDiscussion($number: Int!, $org: String!, $repo: String!) {
@@ -45,7 +48,7 @@ async def handle_entities(message: Message) -> None:
 
     entities = set()
     for match in ENTITY_REGEX.finditer(message.content):
-        id_ = int(match[1])
+        id_ = int(match[2])
         try:
             entity = repo.get_issue(id_)
             kind = "Pull Request" if entity.pull_request else "Issue"
@@ -55,7 +58,11 @@ async def handle_entities(message: Message) -> None:
                 kind = "Discussion"
             except github.GithubException:
                 continue
-        entities.add(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
+        entity_info = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
+        entities.add(
+            # Include a URL if the entity is mentioned by number
+            f"{entity_info}{entity.html_url}\n" if match[1] == "#" else entity_info
+        )
 
     if not entities:
         return
