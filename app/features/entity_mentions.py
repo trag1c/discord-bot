@@ -8,8 +8,11 @@ from github.Repository import Repository
 from app.setup import config, gh
 from app.utils import is_dm, is_tester, try_dm
 
-ISSUE_REGEX = re.compile(r"#(\d{2,6})(?!\.\d)\b")
-ISSUE_TEMPLATE = "**{kind} #{issue.number}:** {issue.title}\n{issue.html_url}\n"
+REPO_URL = "https://github.com/ghostty-org/ghostty/"
+ENTITY_REGEX = re.compile(
+    rf"({REPO_URL}(?:issues|pull|discussions)/|#)(\d{{,6}})(?!\.\d)\b"
+)
+ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n"
 
 DISCUSSION_QUERY = """
 query getDiscussion($number: Int!, $org: String!, $repo: String!) {
@@ -24,43 +27,45 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
 """
 
 
-async def handle_issues(message: Message) -> None:
+async def handle_entities(message: Message) -> None:
     if message.author.bot:
         return
 
     if is_dm(message.author):
         await try_dm(
             message.author,
-            "You can only mention issues/PRs in the Ghostty server.",
+            "You can only mention entities in the Ghostty server.",
         )
         return
 
     if not is_tester(message.author):
         return
 
-    repo = gh.get_repo(
-        f"{config.GITHUB_ORG}/{config.GITHUB_REPO}",
-        lazy=True,
-    )
+    repo = gh.get_repo(f"{config.GITHUB_ORG}/{config.GITHUB_REPO}", lazy=True)
 
-    issues = set()
-    for match in ISSUE_REGEX.finditer(message.content):
-        id_ = int(match[1])
+    entities: list[str] = []
+    for match in ENTITY_REGEX.finditer(message.content):
+        entity_id = int(match[2])
         try:
-            issue = repo.get_issue(id_)
-            kind = "Pull Request" if issue.pull_request else "Issue"
+            entity = repo.get_issue(entity_id)
+            kind = "Pull Request" if entity.pull_request else "Issue"
         except github.UnknownObjectException:
             try:
-                issue = get_discussion(repo, id_)
+                entity = get_discussion(repo, entity_id)
                 kind = "Discussion"
             except github.GithubException:
                 continue
-        issues.add(ISSUE_TEMPLATE.format(kind=kind, issue=issue))
+        entity_info = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
+        if match[1] == "#":  # Entity is referenced by number
+            if entity_id < 10:  # Ignore single-digit mentions (likely a false positive)
+                continue
+            entity_info += f"{entity.html_url}\n"
+        entities.append(entity_info)
 
-    if not issues:
+    if not entities:
         return
 
-    await message.reply("\n".join(issues), mention_author=False)
+    await message.reply("\n".join(dict.fromkeys(entities)), mention_author=False)
 
 
 def get_discussion(repo: Repository, number: int) -> SimpleNamespace:

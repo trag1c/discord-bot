@@ -13,7 +13,7 @@ from sentry_sdk import capture_exception
 
 from app.db.connect import Session
 from app.db.utils import fetch_user
-from app.features.issues import ISSUE_REGEX, handle_issues
+from app.features.entity_mentions import ENTITY_REGEX, handle_entities
 from app.setup import bot, config
 from app.utils import is_dm, is_mod, try_dm
 from app.view import register_vouch_view
@@ -66,9 +66,9 @@ async def on_message(message: discord.Message) -> None:
         await try_dm(message.author, "pong")
         return
 
-    # Look for issue numbers and link them
-    if ISSUE_REGEX.search(message.content):
-        await handle_issues(message)
+    # Look for issue/PR/discussion mentions and name/link them
+    if ENTITY_REGEX.search(message.content):
+        await handle_entities(message)
 
     # Delete non-image messages in #showcase
     if message.channel.id == config.SHOWCASE_CHANNEL_ID and not message.attachments:
