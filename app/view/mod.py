@@ -9,6 +9,7 @@ class SelectChannel(discord.ui.View):
         super().__init__()
         self.message = message
         self.executor = executor
+        self._used = False
 
     @discord.ui.select(
         cls=discord.ui.ChannelSelect,
@@ -20,6 +21,9 @@ class SelectChannel(discord.ui.View):
     async def select_channel(
         self, interaction: discord.Interaction, sel: discord.ui.ChannelSelect
     ) -> None:
+        if self._used:
+            return
+        self._used = True
         channel = await bot.fetch_channel(sel.values[0].id)
         if channel.id == self.message.channel.id:
             await interaction.response.send_message(
