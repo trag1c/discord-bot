@@ -27,6 +27,7 @@ class SelectChannel(discord.ui.View):
             )
             return
 
+        await interaction.response.defer(thinking=True, ephemeral=True)
         webhook_channel, thread = (
             (channel.parent, channel)
             if isinstance(channel, discord.Thread)
@@ -34,6 +35,6 @@ class SelectChannel(discord.ui.View):
         )
         webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
         await move_message_via_webhook(webhook, self.message, self.executor, thread)
-        await interaction.response.edit_message(
-            content=f"Moved the message to {channel.mention}.", view=None
+        await interaction.followup.send(
+            content=f"Moved the message to {channel.mention}."
         )
