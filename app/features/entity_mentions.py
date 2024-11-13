@@ -1,6 +1,7 @@
 import re
 from types import SimpleNamespace
 
+import discord
 import github
 from discord import Message
 from github.Repository import Repository
@@ -13,6 +14,9 @@ ENTITY_REGEX = re.compile(
     rf"({REPO_URL}(?:issues|pull|discussions)/|#)(\d{{1,6}})(?!\.\d)\b"
 )
 ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n"
+IGNORED_MESSAGE_TYPES = frozenset(
+    (discord.MessageType.thread_created, discord.MessageType.channel_name_change)
+)
 
 DISCUSSION_QUERY = """
 query getDiscussion($number: Int!, $org: String!, $repo: String!) {
@@ -28,7 +32,7 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
 
 
 async def handle_entities(message: Message) -> None:
-    if message.author.bot:
+    if message.author.bot or message.type in IGNORED_MESSAGE_TYPES:
         return
 
     if is_dm(message.author):
