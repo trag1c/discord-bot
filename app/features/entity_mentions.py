@@ -10,7 +10,7 @@ from app.utils import is_dm, is_tester, try_dm
 
 REPO_URL = "https://github.com/ghostty-org/ghostty/"
 ENTITY_REGEX = re.compile(
-    rf"({REPO_URL}(?:issues|pull|discussions)/|#)(\d{{,6}})(?!\.\d)\b"
+    rf"({REPO_URL}(?:issues|pull|discussions)/|#)(\d{{1,6}})(?!\.\d)\b"
 )
 ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n"
 
