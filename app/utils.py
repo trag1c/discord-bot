@@ -81,6 +81,7 @@ async def move_message_via_webhook(
     # So we can safely access server-specific attributes
     await webhook.send(
         content=content,
+        poll=message.poll or discord.utils.MISSING,
         username=message.author.display_name,
         avatar_url=message.author.display_avatar.url,
         allowed_mentions=discord.AllowedMentions.none(),
