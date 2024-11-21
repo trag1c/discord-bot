@@ -10,7 +10,7 @@ from app.db import models
 from app.db.connect import Session
 from app.db.utils import fetch_user
 from app.setup import bot, config
-from app.utils import SERVER_ONLY, is_dm, is_mod, is_tester
+from app.utils import SERVER_ONLY, Account, is_dm, is_mod, is_tester
 
 COOLDOWN_TIME = 604_800  # 1 week
 
@@ -196,24 +196,24 @@ def _is_already_vouched_for(member: discord.Member) -> bool:
         return session.query(models.Vouch).filter_by(receiver_id=member.id).count() > 0
 
 
-def _has_already_vouched(user: discord.User | discord.Member) -> bool:
+def _has_already_vouched(account: Account) -> bool:
     with Session() as session:
         return (
             session.query(models.Vouch)
-            .filter_by(voucher_id=user.id)
+            .filter_by(voucher_id=account.id)
             .filter_by(vouch_state=models.VouchState.PENDING)
             .count()
             > 0
         )
 
 
-def _has_vouched_recently(user: discord.User | discord.Member) -> bool:
+def _has_vouched_recently(account: Account) -> bool:
     one_week_ago = dt.datetime.now(tz=dt.UTC) - dt.timedelta(weeks=1)
 
     with Session() as session:
         return (
             session.query(models.Vouch)
-            .filter_by(voucher_id=user.id)
+            .filter_by(voucher_id=account.id)
             .filter(models.Vouch.vouch_state != models.VouchState.PENDING)
             .filter(models.Vouch.request_date > one_week_ago)
             .count()

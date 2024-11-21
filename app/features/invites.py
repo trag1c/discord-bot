@@ -6,6 +6,7 @@ from app import view
 from app.setup import bot, config
 from app.utils import (
     SERVER_ONLY,
+    Account,
     has_linked_github,
     is_dm,
     is_mod,
@@ -15,7 +16,7 @@ from app.utils import (
 
 
 async def log_invite(
-    inviter: discord.Member | discord.User,
+    inviter: Account,
     invitee: discord.Member,
     *,
     note: str = "",
