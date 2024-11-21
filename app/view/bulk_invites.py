@@ -40,7 +40,7 @@ class ConfirmBulkInvite(discord.ui.View):
             try:
                 await account.add_roles(
                     discord.Object(config.TESTER_ROLE_ID),
-                    reason="invite to beta context menu",
+                    reason="bulk invite",
                 )
             except discord.errors.NotFound:
                 continue
