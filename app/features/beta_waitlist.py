@@ -30,7 +30,7 @@ async def beta_waitlist(interaction: discord.Interaction, n: int) -> None:
 
     buf = BytesIO(
         b"\n".join(
-            f"{member.name},{member.joined_at:%Y-%m-%dT%H:%M:%S}".encode()
+            f"{member.id},{member.name},{member.joined_at:%Y-%m-%dT%H:%M:%S}".encode()
             for member in waitlist
         )
     )
