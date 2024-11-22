@@ -10,10 +10,11 @@ from app.setup import config
 
 MAX_ATTACHMENT_SIZE = 67_108_864  # 64 MiB
 
-
 SERVER_ONLY = discord.app_commands.allowed_contexts(
     guilds=True, dms=False, private_channels=False
 )
+
+Account = discord.User | discord.Member
 
 
 async def get_or_create_webhook(
@@ -92,8 +93,8 @@ async def move_message_via_webhook(
     await message.delete()
 
 
-def is_dm(user: discord.User | discord.Member) -> TypeIs[discord.User]:
-    return not isinstance(user, discord.Member)
+def is_dm(account: Account) -> TypeIs[discord.User]:
+    return not isinstance(account, discord.Member)
 
 
 def _has_role(member: discord.Member, role_id: int) -> bool:
@@ -112,8 +113,8 @@ def has_linked_github(member: discord.Member) -> bool:
     return _has_role(member, config.GITHUB_ROLE_ID)
 
 
-async def try_dm(user: discord.User | discord.Member, content: str) -> None:
+async def try_dm(account: Account, content: str) -> None:
     try:
-        await user.send(content)
+        await account.send(content)
     except discord.Forbidden:
-        print(f"Failed to DM {user} with: {shorten(content, width=50)}")
+        print(f"Failed to DM {account} with: {shorten(content, width=50)}")

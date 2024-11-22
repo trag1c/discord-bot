@@ -1,18 +1,16 @@
-from itertools import filterfalse
-
 import discord
 
 from app import config, view
 from app.features.invites import log_invite
-from app.utils import is_tester, try_dm
+from app.utils import Account, is_tester, try_dm
 
 
 class ConfirmBulkInvite(discord.ui.View):
     def __init__(
-        self, members: list[discord.Member], message: discord.Message, prompt: str
+        self, accounts: list[Account], message: discord.Message, prompt: str
     ) -> None:
         super().__init__(timeout=None)
-        self._members = members
+        self._accounts = accounts
         self._message = message
         self._prompt = prompt
         self._used = False
@@ -30,24 +28,39 @@ class ConfirmBulkInvite(discord.ui.View):
         self._used = True
         await interaction.response.defer(thinking=True, ephemeral=True)
 
-        invited_members = set[discord.Member]()
-        for member in filterfalse(is_tester, self._members):
-            await member.add_roles(
-                discord.Object(config.TESTER_ROLE_ID),
-                reason="invite to beta context menu",
-            )
-            await try_dm(member, view.NEW_TESTER_DM)
+        invited = set[Account]()
+        invalid = set[Account]()
+        for account in self._accounts:
+            if not isinstance(account, discord.Member):
+                invalid.add(account)
+                continue
+            if is_tester(account):
+                continue
+
+            try:
+                await account.add_roles(
+                    discord.Object(config.TESTER_ROLE_ID),
+                    reason="bulk invite",
+                )
+            except discord.errors.NotFound:
+                continue
+
+            await try_dm(account, view.NEW_TESTER_DM)
             await log_invite(
                 interaction.user,
-                member,
+                account,
                 note=f"bulk invite at {self._message.jump_url}",
             )
-            invited_members.add(member)
+            invited.add(account)
 
-        content = f"Invited {len(invited_members)} members."
-        if already_testers := set(self._members) - invited_members:
-            content += f" {len(already_testers)} were already testers: "
-            content += " ".join(member.mention for member in already_testers)
+        content = f"Invited {len(invited)} members."
+        for kind, accounts in (
+            ("already in beta", set(self._accounts) - invited - invalid),
+            ("invalid", invalid),
+        ):
+            if n := len(accounts):
+                content += f"\n{n} {'was' if n == 1 else 'were'} {kind}: "
+                content += " ".join(acc.mention for acc in accounts)
 
         await interaction.followup.send(content=content, ephemeral=True)
 
