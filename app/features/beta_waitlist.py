@@ -22,7 +22,7 @@ async def beta_waitlist(interaction: discord.Interaction, n: int) -> None:
         (
             member
             for member in interaction.guild.members
-            if not (member.bot or is_tester(member))
+            if not (member.bot or member.pending or is_tester(member))
         ),
         # Apparently joined_at can be None "in certain cases" :)
         key=lambda m: cast(dt.datetime, m.joined_at),
