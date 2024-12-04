@@ -1,5 +1,6 @@
 import asyncio
 import re
+from contextlib import suppress
 from types import SimpleNamespace
 
 import discord
@@ -77,7 +78,8 @@ async def handle_entities(message: Message) -> None:
         view=DeleteMention(message, len(entities)),
     )
     await asyncio.sleep(30)
-    await sent_message.edit(view=None)
+    with suppress(discord.NotFound):
+        await sent_message.edit(view=None)
 
 
 def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
