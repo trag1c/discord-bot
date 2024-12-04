@@ -1,3 +1,4 @@
+import asyncio
 import re
 from types import SimpleNamespace
 
@@ -8,6 +9,7 @@ from github.Repository import Repository
 
 from app.setup import config, gh
 from app.utils import is_dm, is_tester, try_dm
+from app.view import DeleteMention
 
 REPO_URL = "https://github.com/ghostty-org/ghostty/"
 ENTITY_REGEX = re.compile(
@@ -69,7 +71,13 @@ async def handle_entities(message: Message) -> None:
     if not entities:
         return
 
-    await message.reply("\n".join(dict.fromkeys(entities)), mention_author=False)
+    sent_message = await message.reply(
+        "\n".join(dict.fromkeys(entities)),
+        mention_author=False,
+        view=DeleteMention(message, len(entities)),
+    )
+    await asyncio.sleep(30)
+    await sent_message.edit(view=None)
 
 
 def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
