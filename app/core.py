@@ -71,7 +71,7 @@ async def on_message(message: discord.Message) -> None:
         await handle_entities(message)
 
     # Delete non-image messages in #showcase
-    if message.channel.id == config.SHOWCASE_CHANNEL_ID and not check_message(
+    if message.channel.id == config.SHOWCASE_CHANNEL_ID and not await check_message(
         message, lambda msg: msg.attachments
     ):
         await message.delete()
