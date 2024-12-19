@@ -15,7 +15,7 @@ from app.db.connect import Session
 from app.db.utils import fetch_user
 from app.features.entity_mentions import ENTITY_REGEX, handle_entities
 from app.setup import bot, config
-from app.utils import is_dm, is_mod, try_dm
+from app.utils import check_message, is_dm, is_mod, try_dm
 from app.view import register_vouch_view
 
 
@@ -71,7 +71,9 @@ async def on_message(message: discord.Message) -> None:
         await handle_entities(message)
 
     # Delete non-image messages in #showcase
-    if message.channel.id == config.SHOWCASE_CHANNEL_ID and not message.attachments:
+    if message.channel.id == config.SHOWCASE_CHANNEL_ID and not check_message(
+        message, lambda msg: msg.attachments
+    ):
         await message.delete()
 
     # Mod-only sync command

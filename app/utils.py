@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+from collections.abc import Callable
 from textwrap import shorten
 
 import discord
@@ -118,3 +119,19 @@ async def try_dm(account: Account, content: str) -> None:
         await account.send(content)
     except discord.Forbidden:
         print(f"Failed to DM {account} with: {shorten(content, width=50)}")
+
+
+def check_message(
+    msg: discord.Message, predicate: Callable[[discord.Message], object]
+) -> bool:
+    """
+    Checks a message and its reference chain for a predicate.
+    Basically adds support for the forwarding feature.
+    """
+    if predicate(msg):
+        return True
+    if (msg_ref := msg.reference) is None or (
+        original_msg := msg_ref.cached_message
+    ) is None:
+        return False
+    return check_message(original_msg, predicate)
