@@ -22,6 +22,10 @@ from app.view import register_vouch_view
 URL_REGEX = re.compile(
     r"https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
 )
+MESSAGE_DELETION_TEMPLATE = (
+    "Hey! Your message in {} was deleted because it did not contain {}."
+    " Make sure to include {}, and respond in threads."
+)
 
 
 @bot.event
@@ -80,12 +84,24 @@ async def on_message(message: discord.Message) -> None:
         message, lambda msg: msg.attachments
     ):
         await message.delete()
+        await try_dm(
+            message.author,
+            MESSAGE_DELETION_TEMPLATE.format(
+                message.channel.mention, "any attachments", "a screenshot or a video"
+            ),
+        )
 
     # Delete non-link messages in #media
     if message.channel.id == config.MEDIA_CHANNEL_ID and not await check_message(
         message, lambda msg: URL_REGEX.search(msg.content)
     ):
         await message.delete()
+        await try_dm(
+            message.author,
+            MESSAGE_DELETION_TEMPLATE.format(
+                message.channel.mention, "a link", "a link"
+            ),
+        )
 
     # Mod-only sync command
     if message.content.rstrip() == "!sync":
