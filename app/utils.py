@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+from collections.abc import Callable
 from textwrap import shorten
 
 import discord
@@ -118,3 +119,35 @@ async def try_dm(account: Account, content: str) -> None:
         await account.send(content)
     except discord.Forbidden:
         print(f"Failed to DM {account} with: {shorten(content, width=50)}")
+
+
+async def _get_original_message(message: discord.Message) -> discord.Message | None:
+    if (msg_ref := message.reference) is None:
+        return None
+    if msg_ref.cached_message is not None:
+        return msg_ref.cached_message
+    if (
+        message.guild is None
+        or msg_ref.channel_id is None
+        or msg_ref.message_id is None
+    ):
+        return None
+    if not isinstance(
+        channel := message.guild.get_channel(msg_ref.channel_id), discord.TextChannel
+    ):
+        return None
+    return await channel.fetch_message(msg_ref.message_id)
+
+
+async def check_message(
+    msg: discord.Message, predicate: Callable[[discord.Message], object]
+) -> bool:
+    """
+    Checks a message and its reference chain for a predicate.
+    Basically adds support for the forwarding feature.
+    """
+    if predicate(msg):
+        return True
+    if (original_msg := await _get_original_message(msg)) is None:
+        return False
+    return await check_message(original_msg, predicate)
