@@ -14,6 +14,9 @@ MESSAGE_DELETION_TEMPLATE = (
     "Hey! Your message in {} was deleted because it did not contain {}."
     " Make sure to include {}, and respond in threads."
 )
+REGULAR_MESSAGE_TYPES = frozenset(
+    {discord.MessageType.default, discord.MessageType.reply}
+)
 
 
 class MessageFilter(NamedTuple):
@@ -43,6 +46,8 @@ async def check_message_filters(message: discord.Message) -> None:
         if message.channel.id != msg_filter.channel_id or msg_filter.filter(message):
             continue
         await message.delete()
+        if message.type not in REGULAR_MESSAGE_TYPES:
+            continue
         await try_dm(
             message.author,
             MESSAGE_DELETION_TEMPLATE.format(
