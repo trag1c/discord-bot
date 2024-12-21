@@ -18,7 +18,7 @@ class DeleteMention(discord.ui.View):
         if interaction.user.id != self.message.author.id:
             await interaction.response.send_message(
                 "Only the person who mentioned "
-                + ("this entity" if self.plural else "these entities")
+                + ("these entities" if self.plural else "this entity")
                 + " can remove this message.",
                 ephemeral=True,
             )
