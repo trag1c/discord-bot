@@ -98,20 +98,8 @@ def is_dm(account: Account) -> TypeIs[discord.User]:
     return not isinstance(account, discord.Member)
 
 
-def _has_role(member: discord.Member, role_id: int) -> bool:
-    return member.get_role(role_id) is not None
-
-
-def is_tester(member: discord.Member) -> bool:
-    return _has_role(member, config.TESTER_ROLE_ID)
-
-
 def is_mod(member: discord.Member) -> bool:
-    return _has_role(member, config.MOD_ROLE_ID)
-
-
-def has_linked_github(member: discord.Member) -> bool:
-    return _has_role(member, config.GITHUB_ROLE_ID)
+    return member.get_role(config.MOD_ROLE_ID) is not None
 
 
 async def try_dm(account: Account, content: str) -> None:

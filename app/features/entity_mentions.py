@@ -9,7 +9,7 @@ from discord import Message
 from github.Repository import Repository
 
 from app.setup import config, gh
-from app.utils import is_dm, is_tester, try_dm
+from app.utils import is_dm, try_dm
 from app.view import DeleteMention
 
 REPO_URL = "https://github.com/ghostty-org/ghostty/"
@@ -43,9 +43,6 @@ async def handle_entities(message: Message) -> None:
             message.author,
             "You can only mention entities in the Ghostty server.",
         )
-        return
-
-    if not is_tester(message.author):
         return
 
     repo = gh.get_repo(f"{config.GITHUB_ORG}/{config.GITHUB_REPO}", lazy=True)
