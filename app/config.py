@@ -7,7 +7,7 @@ dotenv.load_dotenv()
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 
 GITHUB_ORG = os.environ["GITHUB_ORG"]
-GITHUB_REPO = os.environ["GITHUB_REPO"]
+GITHUB_REPOS = dict(val.split(":") for val in os.environ["GITHUB_REPOS"].split(","))
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
