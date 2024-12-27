@@ -12,11 +12,8 @@ from app.setup import config, gh
 from app.utils import is_dm, try_dm
 from app.view import DeleteMention
 
-REPO_URL = "https://github.com/ghostty-org/ghostty/"
-ENTITY_REGEX = re.compile(
-    rf"({REPO_URL}(?:issues|pull|discussions)/|#)(\d{{1,6}})(?!\.\d)\b"
-)
-ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n"
+ENTITY_REGEX = re.compile(r"#(\d{1,6})(?!\.\d)\b")
+ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n{entity.html_url}\n"
 IGNORED_MESSAGE_TYPES = frozenset(
     (discord.MessageType.thread_created, discord.MessageType.channel_name_change)
 )
@@ -49,7 +46,7 @@ async def handle_entities(message: Message) -> None:
 
     entities: list[str] = []
     for match in ENTITY_REGEX.finditer(message.content):
-        entity_id = int(match[2])
+        entity_id = int(match[1])
         try:
             entity = repo.get_issue(entity_id)
             kind = "Pull Request" if entity.pull_request else "Issue"
@@ -59,12 +56,10 @@ async def handle_entities(message: Message) -> None:
                 kind = "Discussion"
             except github.GithubException:
                 continue
-        entity_info = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
-        if match[1] == "#":  # Entity is referenced by number
-            if entity_id < 10:  # Ignore single-digit mentions (likely a false positive)
-                continue
-            entity_info += f"{entity.html_url}\n"
-        entities.append(entity_info)
+        if entity_id < 10:
+            # Ignore single-digit mentions (likely a false positive)
+            continue
+        entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
 
     if not entities:
         return
