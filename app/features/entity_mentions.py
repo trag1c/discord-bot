@@ -13,7 +13,7 @@ from app.utils import is_dm, try_dm
 from app.view import DeleteMention
 
 ENTITY_REGEX = re.compile(r"#(\d{1,6})(?!\.\d)\b")
-ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n{entity.html_url}\n"
+ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n<{entity.html_url}>\n"
 IGNORED_MESSAGE_TYPES = frozenset(
     (discord.MessageType.thread_created, discord.MessageType.channel_name_change)
 )
