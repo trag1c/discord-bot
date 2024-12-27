@@ -1,3 +1,5 @@
+from typing import cast
+
 import discord
 
 from app.setup import bot
@@ -40,5 +42,32 @@ class SelectChannel(discord.ui.View):
         webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
         await move_message_via_webhook(webhook, self.message, self.executor, thread)
         await interaction.followup.send(
-            content=f"Moved the message to {channel.mention}."
+            content=f"Moved the message to {channel.mention}.",
+            view=Ghostping(
+                cast(discord.Member, self.message.author),
+                cast(discord.abc.Messageable, channel),
+            ),
+        )
+
+
+class Ghostping(discord.ui.View):
+    def __init__(
+        self, author: discord.Member, channel: discord.abc.Messageable
+    ) -> None:
+        super().__init__()
+        self._author = author
+        self._channel = channel
+
+    @discord.ui.button(
+        label="Ghostping",
+        emoji="👻",
+        style=discord.ButtonStyle.secondary,
+    )
+    async def ghostping(
+        self, interaction: discord.Interaction, but: discord.ui.Button
+    ) -> None:
+        await interaction.response.defer(ephemeral=True)
+        await (await self._channel.send(self._author.mention)).delete()
+        await interaction.followup.send(
+            f"Ghostpinged {self._author.name}.", ephemeral=True
         )
