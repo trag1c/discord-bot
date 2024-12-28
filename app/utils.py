@@ -99,9 +99,9 @@ async def move_message_via_webhook(
     *,
     thread: discord.abc.Snowflake = discord.utils.MISSING,
     thread_name: str = discord.utils.MISSING,
-) -> None:
+) -> discord.WebhookMessage:
     msg_data = await scrape_message_data(message)
-    await webhook.send(
+    msg = await webhook.send(
         content=msg_data.content + _format_subtext(executor, msg_data),
         poll=message.poll or discord.utils.MISSING,
         username=message.author.display_name,
@@ -110,8 +110,10 @@ async def move_message_via_webhook(
         files=msg_data.attachments,
         thread=thread,
         thread_name=thread_name,
+        wait=True,
     )
     await message.delete()
+    return msg
 
 
 def is_dm(account: Account) -> TypeIs[discord.User]:
