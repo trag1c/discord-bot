@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import io
-from collections.abc import Callable
 from textwrap import shorten
+from typing import TYPE_CHECKING, NamedTuple
 
 import discord
-from typing_extensions import TypeIs
 
 from app.setup import config
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from typing_extensions import TypeIs
 
 MAX_ATTACHMENT_SIZE = 67_108_864  # 64 MiB
 
@@ -16,6 +20,63 @@ SERVER_ONLY = discord.app_commands.allowed_contexts(
 )
 
 Account = discord.User | discord.Member
+
+
+class MessageData(NamedTuple):
+    content: str
+    channel: discord.abc.MessageableChannel
+    attachments: list[discord.File]
+    skipped_attachments: int
+    reactions: dict[str | discord.Emoji, int]
+
+
+async def scrape_message_data(message: discord.Message) -> MessageData:
+    return MessageData(
+        message.content,
+        message.channel,
+        *await _get_attachments(message),
+        _get_reactions(message),
+    )
+
+
+async def _get_attachments(message: discord.Message) -> tuple[list[discord.File], int]:
+    """Returns a list of attachments and the number of skipped attachments."""
+    if not message.attachments:
+        return [], 0
+
+    attachments: list[discord.File] = []
+    skipped_attachments = 0
+    for attachment in message.attachments:
+        if attachment.size > MAX_ATTACHMENT_SIZE:
+            skipped_attachments += 1
+            continue
+
+        fp = io.BytesIO(await attachment.read())
+        attachments.append(discord.File(fp, filename=attachment.filename))
+
+    return attachments, skipped_attachments
+
+
+def _get_reactions(message: discord.Message) -> dict[str | discord.Emoji, int]:
+    reactions: dict[str | discord.Emoji, int] = {}
+    for reaction in message.reactions:
+        if isinstance(emoji := reaction.emoji, discord.Emoji) and not emoji.is_usable():
+            continue
+        if isinstance(emoji, discord.PartialEmoji):
+            continue
+        reactions[emoji] = reaction.count
+    return reactions
+
+
+def _format_subtext(executor: discord.Member | None, msg_data: MessageData) -> str:
+    lines: list[str] = []
+    if reactions := msg_data.reactions.items():
+        lines.append("   ".join(f"{emoji} x{count}" for emoji, count in reactions))
+    if executor:
+        lines.append(f"Moved from {msg_data.channel.mention} by {executor.mention}")
+    if skipped := msg_data.skipped_attachments:
+        lines.append(f"(skipped {skipped} large attachment(s))")
+    return "".join(f"\n-# {line}" for line in lines)
 
 
 async def get_or_create_webhook(
@@ -38,59 +99,16 @@ async def move_message_via_webhook(
     executor: discord.Member | None = None,
     thread: discord.abc.Snowflake = discord.utils.MISSING,
 ) -> None:
-    content = message.content
-    uploads = []
-    skipped = 0
-
-    if message.attachments:
-        # We need to store the attachments in a buffer for a reupload
-        for attachment in message.attachments:
-            if attachment.size > MAX_ATTACHMENT_SIZE:
-                skipped += 1
-                continue
-
-            fp = io.BytesIO(await attachment.read())
-            uploads.append(discord.File(fp, filename=attachment.filename))
-
-    reactions_with_count = {}
-    for reaction in message.reactions:
-        emoji = reaction.emoji
-        if isinstance(emoji, discord.Emoji) and not emoji.is_usable():
-            continue
-
-        if isinstance(emoji, discord.PartialEmoji):
-            # TODO: Can we register the emoji with the bot temporarily?
-            continue
-
-        reactions_with_count[reaction.emoji] = reaction.count
-
-    subtext = ""
-    if reactions_with_count:
-        subtext += " "
-        subtext += "   ".join(
-            f"x{count} {emoji}" for emoji, count in reactions_with_count.items()
-        )
-
-        subtext += "\n"
-
-    if executor:
-        subtext += f" Moved from {message.channel.mention} by {executor.mention}"
-    if skipped:
-        subtext += f" (skipped {skipped} large attachment(s))"
-    content += "".join(f"\n-# {line.lstrip()}" for line in subtext.splitlines())
-
-    # We have validated ahead of time that this is a discord.Member
-    # So we can safely access server-specific attributes
+    msg_data = await scrape_message_data(message)
     await webhook.send(
-        content=content,
+        content=msg_data.content + _format_subtext(executor, msg_data),
         poll=message.poll or discord.utils.MISSING,
         username=message.author.display_name,
         avatar_url=message.author.display_avatar.url,
         allowed_mentions=discord.AllowedMentions.none(),
-        files=uploads,
+        files=msg_data.attachments,
         thread=thread,
     )
-
     await message.delete()
 
 
