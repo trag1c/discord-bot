@@ -40,7 +40,7 @@ class SelectChannel(discord.ui.View):
             else (channel, discord.utils.MISSING)
         )
         webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
-        await move_message_via_webhook(webhook, self.message, self.executor, thread)
+        await move_message_via_webhook(webhook, self.message, self.executor, thread=thread)
         await interaction.followup.send(
             content=f"Moved the message to {channel.mention}.",
             view=Ghostping(

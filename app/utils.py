@@ -79,7 +79,7 @@ def _format_subtext(executor: discord.Member | None, msg_data: MessageData) -> s
 
 
 async def get_or_create_webhook(
-    name: str, channel: discord.TextChannel
+    name: str, channel: discord.TextChannel | discord.ForumChannel
 ) -> discord.Webhook:
     webhooks = await channel.webhooks()
     for webhook in webhooks:
@@ -96,7 +96,9 @@ async def move_message_via_webhook(
     webhook: discord.Webhook,
     message: discord.Message,
     executor: discord.Member | None = None,
+    *,
     thread: discord.abc.Snowflake = discord.utils.MISSING,
+    thread_name: str = discord.utils.MISSING,
 ) -> None:
     msg_data = await scrape_message_data(message)
     await webhook.send(
@@ -107,6 +109,7 @@ async def move_message_via_webhook(
         allowed_mentions=discord.AllowedMentions.none(),
         files=msg_data.attachments,
         thread=thread,
+        thread_name=thread_name,
     )
     await message.delete()
 
