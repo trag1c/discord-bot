@@ -17,6 +17,10 @@ ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n<{entity.html_ur
 IGNORED_MESSAGE_TYPES = frozenset(
     (discord.MessageType.thread_created, discord.MessageType.channel_name_change)
 )
+REPOSITORIES: dict[str, Repository] = {
+    kind: gh.get_repo(f"{config.GITHUB_ORG}/{name}", lazy=True)
+    for kind, name in config.GITHUB_REPOS.items()
+}
 
 DISCUSSION_QUERY = """
 query getDiscussion($number: Int!, $org: String!, $repo: String!) {
@@ -29,8 +33,6 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
   }
 }
 """
-
-repo_cache: dict[str, Repository] = {}
 
 
 async def handle_entities(message: Message) -> None:
@@ -46,11 +48,7 @@ async def handle_entities(message: Message) -> None:
 
     entities: list[str] = []
     for match in ENTITY_REGEX.finditer(message.content):
-        repo_name = config.GITHUB_REPOS[match[1] or "main"]
-        if (repo := repo_cache.get(repo_name)) is None:
-            repo_cache[repo_name] = repo = gh.get_repo(
-                f"{config.GITHUB_ORG}/{repo_name}", lazy=True
-            )
+        repo = REPOSITORIES[match[1] or "main"]
         entity_id = int(match[2])
         try:
             entity = repo.get_issue(entity_id)
