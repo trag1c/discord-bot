@@ -40,7 +40,6 @@ async def scrape_message_data(message: discord.Message) -> MessageData:
 
 
 async def _get_attachments(message: discord.Message) -> tuple[list[discord.File], int]:
-    """Returns a list of attachments and the number of skipped attachments."""
     if not message.attachments:
         return [], 0
 
