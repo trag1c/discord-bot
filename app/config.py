@@ -12,6 +12,7 @@ GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 
+HELP_CHANNEL_ID = int(os.environ["BOT_HELP_CHANNEL_ID"])
 MEDIA_CHANNEL_ID = int(os.environ["BOT_MEDIA_CHANNEL_ID"])
 MOD_ROLE_ID = int(os.environ["BOT_MOD_ROLE_ID"])
 SHOWCASE_CHANNEL_ID = int(os.environ["BOT_SHOWCASE_CHANNEL_ID"])

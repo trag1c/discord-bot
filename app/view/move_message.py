@@ -2,6 +2,7 @@ from typing import cast
 
 import discord
 
+from app import config
 from app.setup import bot
 from app.utils import get_or_create_webhook, move_message_via_webhook
 
@@ -40,7 +41,9 @@ class SelectChannel(discord.ui.View):
             else (channel, discord.utils.MISSING)
         )
         webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
-        await move_message_via_webhook(webhook, self.message, self.executor, thread)
+        await move_message_via_webhook(
+            webhook, self.message, self.executor, thread=thread
+        )
         await interaction.followup.send(
             content=f"Moved the message to {channel.mention}.",
             view=Ghostping(
@@ -70,4 +73,34 @@ class Ghostping(discord.ui.View):
         await (await self._channel.send(self._author.mention)).delete()
         await interaction.followup.send(
             f"Ghostpinged {self._author.name}.", ephemeral=True
+        )
+
+
+class HelpPostTitle(discord.ui.Modal, title="Turn into #help post"):
+    title_ = discord.ui.TextInput(
+        label="#help post title", style=discord.TextStyle.short
+    )
+
+    def __init__(self, message: discord.Message) -> None:
+        super().__init__()
+        self._message = message
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        help_channel = cast(
+            discord.ForumChannel, bot.get_channel(config.HELP_CHANNEL_ID)
+        )
+        await interaction.response.defer(ephemeral=True)
+
+        webhook = await get_or_create_webhook("Ghostty Moderator", help_channel)
+        msg = await move_message_via_webhook(
+            webhook,
+            self._message,
+            cast(discord.Member, interaction.user),
+            thread_name=self.title_.value,
+        )
+        await (await msg.channel.send(self._message.author.mention)).delete()
+
+        # Apparently msg.channel.mention is unavailable
+        await interaction.followup.send(
+            content=f"Help post created: <#{msg.channel.id}>", ephemeral=True
         )

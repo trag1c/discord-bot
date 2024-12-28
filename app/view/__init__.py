@@ -1,4 +1,4 @@
 from app.view.entity_mentions import DeleteMention
-from app.view.move_message import SelectChannel
+from app.view.move_message import HelpPostTitle, SelectChannel
 
-__all__ = ("DeleteMention", "SelectChannel")
+__all__ = ("DeleteMention", "HelpPostTitle", "SelectChannel")
