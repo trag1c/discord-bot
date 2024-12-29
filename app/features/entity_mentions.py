@@ -84,6 +84,18 @@ entity_cache = TTLCache(1800)  # 30 minutes
 message_to_mentions: dict[discord.Message, discord.Message] = {}
 
 
+def _get_entities(message: discord.Message) -> tuple[str, int]:
+    entities: list[str] = []
+    for match in ENTITY_REGEX.finditer(message.content):
+        repo_name = cast(RepoName, match[1] or "main")
+        kind, entity = entity_cache[repo_name, int(match[2])]
+        if entity.number < 10:
+            # Ignore single-digit mentions (likely a false positive)
+            continue
+        entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
+    return "\n".join(dict.fromkeys(entities)), len(entities)
+
+
 async def remove_button_after_timeout(message: discord.Message) -> None:
     await asyncio.sleep(30)
     with suppress(discord.NotFound, discord.HTTPException):
@@ -101,22 +113,13 @@ async def handle_entities(message: Message) -> None:
         )
         return
 
-    entities: list[str] = []
-    for match in ENTITY_REGEX.finditer(message.content):
-        repo_name = cast(RepoName, match[1] or "main")
-        kind, entity = entity_cache[repo_name, int(match[2])]
-        if entity.number < 10:
-            # Ignore single-digit mentions (likely a false positive)
-            continue
-        entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
+    msg_content, entity_count = _get_entities(message)
 
-    if not entities:
+    if not msg_content:
         return
 
     sent_message = await message.reply(
-        "\n".join(dict.fromkeys(entities)),
-        mention_author=False,
-        view=DeleteMention(message, len(entities)),
+        msg_content, mention_author=False, view=DeleteMention(message, entity_count)
     )
     message_to_mentions[message] = sent_message
     await remove_button_after_timeout(sent_message)
