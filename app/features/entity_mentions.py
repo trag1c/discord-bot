@@ -84,6 +84,12 @@ entity_cache = TTLCache(1800)  # 30 minutes
 message_to_mentions: dict[discord.Message, discord.Message] = {}
 
 
+async def remove_button_after_timeout(message: discord.Message) -> None:
+    await asyncio.sleep(30)
+    with suppress(discord.NotFound, discord.HTTPException):
+        await message.edit(view=None)
+
+
 async def handle_entities(message: Message) -> None:
     if message.author.bot or message.type in IGNORED_MESSAGE_TYPES:
         return
@@ -113,9 +119,7 @@ async def handle_entities(message: Message) -> None:
         view=DeleteMention(message, len(entities)),
     )
     message_to_mentions[message] = sent_message
-    await asyncio.sleep(30)
-    with suppress(discord.NotFound, discord.HTTPException):
-        await sent_message.edit(view=None)
+    await remove_button_after_timeout(sent_message)
 
 
 def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
