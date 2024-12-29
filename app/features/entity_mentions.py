@@ -111,7 +111,7 @@ async def handle_entities(message: Message) -> None:
         view=DeleteMention(message, len(entities)),
     )
     await asyncio.sleep(30)
-    with suppress(discord.NotFound):
+    with suppress(discord.NotFound, discord.HTTPException):
         await sent_message.edit(view=None)
 
 
