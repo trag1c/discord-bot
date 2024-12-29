@@ -143,3 +143,20 @@ async def on_message_delete(message: discord.Message) -> None:
     if (reply := message_to_mentions.get(message)) is not None:
         await reply.delete()
         del message_to_mentions[message]
+
+
+@bot.event
+async def on_message_edit(before: discord.Message, after: discord.Message) -> None:
+    if before.content == after.content:
+        return
+    if _get_entities(before) == (new_entities := _get_entities(after)):
+        return
+
+    if (reply := message_to_mentions.get(before)) is not None:
+        content, count = new_entities
+        await reply.edit(
+            content=content,
+            view=DeleteMention(after, count),
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
+        await remove_button_after_timeout(reply)
