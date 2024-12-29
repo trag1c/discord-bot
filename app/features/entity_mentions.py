@@ -62,7 +62,7 @@ class TTLCache:
                 entity = get_discussion(REPOSITORIES[repo_name], entity_id)
                 kind = "Discussion"
             except github.GithubException:
-                raise KeyError(key) from None
+                raise KeyError(key)
         self._cache[key] = (dt.datetime.now(), kind, cast(Entity, entity))
 
     def _refresh(self, key: CacheKey) -> None:
