@@ -2,7 +2,7 @@ import discord
 
 from app import view
 from app.setup import bot
-from app.utils import SERVER_ONLY, is_dm, is_mod
+from app.utils import SERVER_ONLY, is_dm, is_helper, is_mod
 from app.view import HelpPostTitle
 
 
@@ -18,7 +18,7 @@ async def move_message(
     """
     assert not is_dm(interaction.user)
 
-    if not is_mod(interaction.user):
+    if not (is_mod(interaction.user) or is_helper(interaction.user)):
         await interaction.response.send_message(
             "You do not have permission to move messages.", ephemeral=True
         )
@@ -43,7 +43,7 @@ async def turn_into_help_post(
     """
     assert not is_dm(interaction.user)
 
-    if not is_mod(interaction.user):
+    if not (is_mod(interaction.user) or is_helper(interaction.user)):
         await interaction.response.send_message(
             "You do not have permission to use this action.", ephemeral=True
         )

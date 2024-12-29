@@ -124,6 +124,10 @@ def is_mod(member: discord.Member) -> bool:
     return member.get_role(config.MOD_ROLE_ID) is not None
 
 
+def is_helper(member: discord.Member) -> bool:
+    return member.get_role(config.HELPER_ROLE_ID) is not None
+
+
 async def try_dm(account: Account, content: str) -> None:
     try:
         await account.send(content)
