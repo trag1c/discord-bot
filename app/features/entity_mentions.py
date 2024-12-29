@@ -10,7 +10,7 @@ import github
 from discord import Message
 from github.Repository import Repository
 
-from app.setup import config, gh
+from app.setup import bot, config, gh
 from app.utils import is_dm, try_dm
 from app.view import DeleteMention
 
@@ -81,6 +81,8 @@ class TTLCache:
 
 entity_cache = TTLCache(1800)  # 30 minutes
 
+message_to_mentions: dict[discord.Message, discord.Message] = {}
+
 
 async def handle_entities(message: Message) -> None:
     if message.author.bot or message.type in IGNORED_MESSAGE_TYPES:
@@ -110,6 +112,7 @@ async def handle_entities(message: Message) -> None:
         mention_author=False,
         view=DeleteMention(message, len(entities)),
     )
+    message_to_mentions[message] = sent_message
     await asyncio.sleep(30)
     with suppress(discord.NotFound, discord.HTTPException):
         await sent_message.edit(view=None)
@@ -126,3 +129,10 @@ def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
     )
     data = response["data"]["repository"]["discussion"]
     return SimpleNamespace(**data)
+
+
+@bot.event
+async def on_message_delete(message: discord.Message) -> None:
+    if (reply := message_to_mentions.get(message)) is not None:
+        await reply.delete()
+        del message_to_mentions[message]
