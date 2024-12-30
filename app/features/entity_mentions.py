@@ -85,11 +85,15 @@ message_to_mentions: dict[discord.Message, discord.Message] = {}
 
 
 def _get_entities(message: discord.Message) -> tuple[str, int]:
+    matches = dict.fromkeys(m.groups() for m in ENTITY_REGEX.finditer(message.content))
+    if len(matches) > 10:
+        # Too many mentions, preventing a DoS
+        return "", 0
+
     entities: list[str] = []
-    for match in ENTITY_REGEX.finditer(message.content):
-        repo_name = cast(RepoName, match[1] or "main")
-        kind, entity = entity_cache[repo_name, int(match[2])]
-        if entity.number < 10 and match[1] is None:
+    for repo_name, number in matches:
+        kind, entity = entity_cache[cast(RepoName, repo_name or "main"), int(number)]
+        if entity.number < 10 and repo_name is None:
             # Ignore single-digit mentions (likely a false positive)
             continue
         entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
