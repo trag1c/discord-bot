@@ -44,21 +44,23 @@ async def on_message(message: discord.Message) -> None:
     if message.author == bot.user:
         return
 
+    # Mod-only sync command
+    if message.content.rstrip() == "!sync":
+        await sync(bot, message)
+        return
+
     # Simple test
     if message.guild is None and message.content == "ping":
         await try_dm(message.author, "pong")
         return
 
+    # Delete invalid messages in #showcase and #media
+    if await check_message_filters(message):
+        return
+
     # Look for issue/PR/discussion mentions and name/link them
     if ENTITY_REGEX.search(message.content):
         await handle_entities(message)
-
-    # Delete invalid messages in #showcase and #media
-    await check_message_filters(message)
-
-    # Mod-only sync command
-    if message.content.rstrip() == "!sync":
-        await sync(bot, message)
 
 
 async def sync(bot: commands.Bot, message: discord.Message) -> None:

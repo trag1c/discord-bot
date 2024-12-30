@@ -10,7 +10,7 @@ import github
 from discord import Message
 from github.Repository import Repository
 
-from app.setup import config, gh
+from app.setup import bot, config, gh
 from app.utils import is_dm, try_dm
 from app.view import DeleteMention
 
@@ -81,6 +81,42 @@ class TTLCache:
 
 entity_cache = TTLCache(1800)  # 30 minutes
 
+message_to_mentions: dict[discord.Message, discord.Message] = {}
+
+
+def _get_entities(message: discord.Message) -> tuple[str, int]:
+    matches = dict.fromkeys(m.groups() for m in ENTITY_REGEX.finditer(message.content))
+    if len(matches) > 10:
+        # Too many mentions, preventing a DoS
+        return "", 0
+
+    entities: list[str] = []
+    for repo_name, number_ in matches:
+        number = int(number_)
+        try:
+            kind, entity = entity_cache[cast(RepoName, repo_name or "main"), number]
+        except KeyError:
+            # (hopefully temporary) workaround for discussions not working
+            if number > 5000:
+                raise
+            kind = "Discussion"
+            entity = SimpleNamespace(
+                number=number,
+                title="?\n-# Entity not found, assuming it's a discussion",
+                html_url=f"https://github.com/ghostty-org/ghostty/discussions/{number}",
+            )
+        if entity.number < 10 and repo_name is None:
+            # Ignore single-digit mentions (likely a false positive)
+            continue
+        entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
+    return "\n".join(dict.fromkeys(entities)), len(entities)
+
+
+async def remove_button_after_timeout(message: discord.Message) -> None:
+    await asyncio.sleep(30)
+    with suppress(discord.NotFound, discord.HTTPException):
+        await message.edit(view=None)
+
 
 async def handle_entities(message: Message) -> None:
     if message.author.bot or message.type in IGNORED_MESSAGE_TYPES:
@@ -93,26 +129,16 @@ async def handle_entities(message: Message) -> None:
         )
         return
 
-    entities: list[str] = []
-    for match in ENTITY_REGEX.finditer(message.content):
-        repo_name = cast(RepoName, match[1] or "main")
-        kind, entity = entity_cache[repo_name, int(match[2])]
-        if entity.number < 10:
-            # Ignore single-digit mentions (likely a false positive)
-            continue
-        entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
+    msg_content, entity_count = _get_entities(message)
 
-    if not entities:
+    if not entity_count:
         return
 
     sent_message = await message.reply(
-        "\n".join(dict.fromkeys(entities)),
-        mention_author=False,
-        view=DeleteMention(message, len(entities)),
+        msg_content, mention_author=False, view=DeleteMention(message, entity_count)
     )
-    await asyncio.sleep(30)
-    with suppress(discord.NotFound, discord.HTTPException):
-        await sent_message.edit(view=None)
+    message_to_mentions[message] = sent_message
+    await remove_button_after_timeout(sent_message)
 
 
 def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
@@ -126,3 +152,47 @@ def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
     )
     data = response["data"]["repository"]["discussion"]
     return SimpleNamespace(**data)
+
+
+@bot.event
+async def on_message_delete(message: discord.Message) -> None:
+    if (reply := message_to_mentions.get(message)) is not None:
+        await reply.delete()
+        del message_to_mentions[message]
+
+
+@bot.event
+async def on_message_edit(before: discord.Message, after: discord.Message) -> None:
+    if before.content == after.content:
+        return
+    if (old_entites := _get_entities(before)) == (new_entities := _get_entities(after)):
+        # Message changed but mentions are the same
+        return
+
+    if (reply := message_to_mentions.get(before)) is None:
+        if not old_entites[1]:
+            # There were no mentions before, so treat this as a new message
+            await handle_entities(after)
+        # The message was removed from the M2M map at some point
+        return
+
+    content, count = new_entities
+    if not count:
+        # All mentions were edited out
+        del message_to_mentions[before]
+        await reply.delete()
+        return
+
+    # If the message was edited (or created, if never edited) more than 24 hours ago,
+    # stop reacting to it and remove its M2M entry.
+    last_updated = dt.datetime.now(tz=dt.UTC) - (reply.edited_at or reply.created_at)
+    if last_updated > dt.timedelta(hours=24):
+        del message_to_mentions[before]
+        return
+
+    await reply.edit(
+        content=content,
+        view=DeleteMention(after, count),
+        allowed_mentions=discord.AllowedMentions.none(),
+    )
+    await remove_button_after_timeout(reply)
