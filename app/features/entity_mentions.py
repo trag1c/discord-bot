@@ -150,15 +150,19 @@ async def on_message_edit(before: discord.Message, after: discord.Message) -> No
     if before.content == after.content:
         return
     if (old_entites := _get_entities(before)) == (new_entities := _get_entities(after)):
+        # Message changed but mentions are the same
         return
 
     if (reply := message_to_mentions.get(before)) is None:
         if not old_entites[1]:
+            # There were no mentions before, so treat this as a new message
             await handle_entities(after)
+        # The message was removed from the M2M map at some point
         return
 
     content, count = new_entities
     if not count:
+        # All mentions were edited out
         del message_to_mentions[before]
         await reply.delete()
         return
