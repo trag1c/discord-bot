@@ -152,11 +152,14 @@ async def on_message_edit(before: discord.Message, after: discord.Message) -> No
     if _get_entities(before) == (new_entities := _get_entities(after)):
         return
 
-    if (reply := message_to_mentions.get(before)) is not None:
-        content, count = new_entities
-        await reply.edit(
-            content=content,
-            view=DeleteMention(after, count),
-            allowed_mentions=discord.AllowedMentions.none(),
-        )
-        await remove_button_after_timeout(reply)
+    if (reply := message_to_mentions.get(before)) is None:
+        await handle_entities(after)
+        return
+
+    content, count = new_entities
+    await reply.edit(
+        content=content,
+        view=DeleteMention(after, count),
+        allowed_mentions=discord.AllowedMentions.none(),
+    )
+    await remove_button_after_timeout(reply)
