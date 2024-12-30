@@ -157,6 +157,11 @@ async def on_message_edit(before: discord.Message, after: discord.Message) -> No
         return
 
     content, count = new_entities
+    if not count:
+        del message_to_mentions[before]
+        await reply.delete()
+        return
+
     await reply.edit(
         content=content,
         view=DeleteMention(after, count),
