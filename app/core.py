@@ -74,19 +74,6 @@ async def sync(bot: commands.Bot, message: discord.Message) -> None:
 
 
 def handle_error(error: BaseException) -> None:
-    if _is_ratelimit(error):
-        # Restart the bot with a delay at startup.
-        # This effectively replaces the current process.
-        os.execv(
-            sys.executable,
-            (
-                "python",
-                Path(__file__).parent / "__main__.py",
-                *sys.argv[1:],
-                "--rate-limit-delay",
-            ),
-        )
-
     if config.SENTRY_DSN is not None:
         capture_exception(error)
         return
@@ -95,9 +82,3 @@ def handle_error(error: BaseException) -> None:
     print_tb(error.__traceback__)
     if isinstance(error, discord.app_commands.CommandInvokeError):
         handle_error(error.original)
-
-
-def _is_ratelimit(error: BaseException) -> bool:
-    if isinstance(error, discord.app_commands.CommandInvokeError):
-        error = error.original
-    return isinstance(error, discord.HTTPException) and error.status == 429
