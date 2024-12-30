@@ -1,3 +1,3 @@
-from app.features import entity_mentions, move_message
+from app.features import docs, entity_mentions, move_message
 
-__all__ = ("entity_mentions", "move_message")
+__all__ = ("docs", "entity_mentions", "move_message")
