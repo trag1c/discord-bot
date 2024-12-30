@@ -115,7 +115,7 @@ async def handle_entities(message: Message) -> None:
 
     msg_content, entity_count = _get_entities(message)
 
-    if not msg_content:
+    if not entity_count:
         return
 
     sent_message = await message.reply(
