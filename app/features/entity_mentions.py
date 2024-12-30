@@ -167,6 +167,13 @@ async def on_message_edit(before: discord.Message, after: discord.Message) -> No
         await reply.delete()
         return
 
+    # If the message was edited (or created, if never edited) more than 24 hours ago,
+    # stop reacting to it and remove its M2M entry.
+    last_updated = dt.datetime.now(tz=dt.UTC) - (reply.edited_at or reply.created_at)
+    if last_updated > dt.timedelta(hours=24):
+        del message_to_mentions[before]
+        return
+
     await reply.edit(
         content=content,
         view=DeleteMention(after, count),
