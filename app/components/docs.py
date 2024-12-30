@@ -5,7 +5,7 @@ import discord
 from discord.app_commands import Choice, autocomplete
 from github.ContentFile import ContentFile
 
-from app.features.entity_mentions import REPOSITORIES
+from app.components.entity_mentions import REPOSITORIES
 from app.setup import bot
 from app.utils import SERVER_ONLY
 

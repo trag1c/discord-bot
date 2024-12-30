@@ -10,9 +10,9 @@ import discord
 from discord.ext import commands
 from sentry_sdk import capture_exception
 
-from app.features.docs import refresh_sitemap
-from app.features.entity_mentions import ENTITY_REGEX, handle_entities
-from app.features.message_filter import check_message_filters
+from app.components.docs import refresh_sitemap
+from app.components.entity_mentions import ENTITY_REGEX, handle_entities
+from app.components.message_filter import check_message_filters
 from app.setup import bot, config
 from app.utils import is_dm, is_mod, try_dm
 
