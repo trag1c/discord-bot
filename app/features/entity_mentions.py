@@ -91,8 +91,20 @@ def _get_entities(message: discord.Message) -> tuple[str, int]:
         return "", 0
 
     entities: list[str] = []
-    for repo_name, number in matches:
-        kind, entity = entity_cache[cast(RepoName, repo_name or "main"), int(number)]
+    for repo_name, number_ in matches:
+        number = int(number_)
+        try:
+            kind, entity = entity_cache[cast(RepoName, repo_name or "main"), number]
+        except KeyError:
+            # (hopefully temporary) workaround for discussions not working
+            if number > 5000:
+                raise
+            kind = "Discussion"
+            entity = SimpleNamespace(
+                number=number,
+                title="?\n-# Entity not found, assuming it's a discussion",
+                html_url=f"https://github.com/ghostty-org/ghostty/discussions/{number}",
+            )
         if entity.number < 10 and repo_name is None:
             # Ignore single-digit mentions (likely a false positive)
             continue
