@@ -10,6 +10,7 @@ import discord
 from discord.ext import commands
 from sentry_sdk import capture_exception
 
+from app.features.docs import refresh_sitemap
 from app.features.entity_mentions import ENTITY_REGEX, handle_entities
 from app.features.message_filter import check_message_filters
 from app.setup import bot, config
@@ -65,6 +66,7 @@ async def sync(bot: commands.Bot, message: discord.Message) -> None:
     if is_dm(message.author) or not is_mod(message.author):
         return
 
+    refresh_sitemap()
     await bot.tree.sync()
     await try_dm(message.author, "Command tree synced.")
 
