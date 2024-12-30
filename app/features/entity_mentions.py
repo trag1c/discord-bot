@@ -89,7 +89,7 @@ def _get_entities(message: discord.Message) -> tuple[str, int]:
     for match in ENTITY_REGEX.finditer(message.content):
         repo_name = cast(RepoName, match[1] or "main")
         kind, entity = entity_cache[repo_name, int(match[2])]
-        if entity.number < 10:
+        if entity.number < 10 and match[1] is None:
             # Ignore single-digit mentions (likely a false positive)
             continue
         entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
