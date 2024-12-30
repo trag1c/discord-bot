@@ -12,7 +12,6 @@ from github.Repository import Repository
 
 from app.setup import bot, config, gh
 from app.utils import is_dm, try_dm
-from app.view import DeleteMention
 
 ENTITY_REGEX = re.compile(r"(?:\b(web|bot|main))?#(\d{1,6})(?!\.\d)\b")
 ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n<{entity.html_url}>\n"
@@ -39,6 +38,32 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
 RepoName = Literal["web", "bot", "main"]
 CacheKey = tuple[RepoName, int]
 EntityKind = Literal["Pull Request", "Issue", "Discussion"]
+
+
+class DeleteMention(discord.ui.View):
+    def __init__(self, message: discord.Message, entity_count: int) -> None:
+        super().__init__()
+        self.message = message
+        self.plural = entity_count > 1
+
+    @discord.ui.button(
+        label="Delete",
+        emoji="🗑️",
+        style=discord.ButtonStyle.gray,
+    )
+    async def delete(
+        self, interaction: discord.Interaction, but: discord.ui.Button
+    ) -> None:
+        if interaction.user.id != self.message.author.id:
+            await interaction.response.send_message(
+                "Only the person who mentioned "
+                + ("these entities" if self.plural else "this entity")
+                + " can remove this message.",
+                ephemeral=True,
+            )
+            return
+        assert interaction.message
+        await interaction.message.delete()
 
 
 class Entity(Protocol):
