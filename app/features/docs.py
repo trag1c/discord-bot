@@ -47,6 +47,8 @@ def refresh_sitemap() -> None:
             for line in raw.decoded_content.splitlines()
             if line.startswith(b"## ")
         ]
+    # Special case for /config/keybind/sequence
+    sitemap["action"].append("trigger-sequences")
 
 
 sitemap: dict[str, list[str]] = {}
@@ -92,6 +94,12 @@ async def docs(interaction: discord.Interaction, section: str, page: str) -> Non
             f"Invalid page {page!r}", ephemeral=True
         )
         return
+
+    section_path = SECTIONS[section]
+    # Special case for /config/keybind/sequence
+    if (section, page) == ("action", "trigger-sequences"):
+        section_path, page = "config/keybind/", "sequence"
+
     await interaction.response.send_message(
-        URL_TEMPLATE.format(section=SECTIONS[section], page=page)
+        URL_TEMPLATE.format(section=section_path, page=page)
     )
