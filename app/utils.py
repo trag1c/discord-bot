@@ -129,6 +129,8 @@ def is_helper(member: discord.Member) -> bool:
 
 
 async def try_dm(account: Account, content: str) -> None:
+    if account.bot:
+        return
     try:
         await account.send(content)
     except discord.Forbidden:
