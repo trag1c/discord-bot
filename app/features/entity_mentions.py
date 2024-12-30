@@ -149,11 +149,12 @@ async def on_message_delete(message: discord.Message) -> None:
 async def on_message_edit(before: discord.Message, after: discord.Message) -> None:
     if before.content == after.content:
         return
-    if _get_entities(before) == (new_entities := _get_entities(after)):
+    if (old_entites := _get_entities(before)) == (new_entities := _get_entities(after)):
         return
 
     if (reply := message_to_mentions.get(before)) is None:
-        await handle_entities(after)
+        if not old_entites[1]:
+            await handle_entities(after)
         return
 
     content, count = new_entities
