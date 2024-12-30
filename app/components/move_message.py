@@ -112,7 +112,6 @@ class HelpPostTitle(discord.ui.Modal, title="Turn into #help post"):
         )
 
 
-
 @bot.tree.context_menu(name="Move message")
 @discord.app_commands.default_permissions(manage_messages=True)
 @SERVER_ONLY

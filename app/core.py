@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import os
 import sys
-from pathlib import Path
 from traceback import print_tb
 from typing import cast
 
