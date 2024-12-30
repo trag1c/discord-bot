@@ -41,7 +41,7 @@ MESSAGE_FILTERS = (
 )
 
 
-async def check_message_filters(message: discord.Message) -> None:
+async def check_message_filters(message: discord.Message) -> bool:
     for msg_filter in MESSAGE_FILTERS:
         if message.channel.id != msg_filter.channel_id or msg_filter.filter(message):
             continue
@@ -54,3 +54,5 @@ async def check_message_filters(message: discord.Message) -> None:
                 message.channel.mention, *msg_filter.template_fillers
             ),
         )
+        return True
+    return False

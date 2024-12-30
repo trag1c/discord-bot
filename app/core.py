@@ -54,7 +54,8 @@ async def on_message(message: discord.Message) -> None:
         return
 
     # Delete invalid messages in #showcase and #media
-    await check_message_filters(message)
+    if await check_message_filters(message):
+        return
 
     # Look for issue/PR/discussion mentions and name/link them
     if ENTITY_REGEX.search(message.content):
