@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import os
 import sys
-from pathlib import Path
 from traceback import print_tb
 from typing import cast
 
@@ -10,9 +8,9 @@ import discord
 from discord.ext import commands
 from sentry_sdk import capture_exception
 
-from app.features.docs import refresh_sitemap
-from app.features.entity_mentions import ENTITY_REGEX, handle_entities
-from app.features.message_filter import check_message_filters
+from app.components.docs import refresh_sitemap
+from app.components.entity_mentions import ENTITY_REGEX, handle_entities
+from app.components.message_filter import check_message_filters
 from app.setup import bot, config
 from app.utils import is_dm, is_mod, try_dm
 
@@ -74,19 +72,6 @@ async def sync(bot: commands.Bot, message: discord.Message) -> None:
 
 
 def handle_error(error: BaseException) -> None:
-    if _is_ratelimit(error):
-        # Restart the bot with a delay at startup.
-        # This effectively replaces the current process.
-        os.execv(
-            sys.executable,
-            (
-                "python",
-                Path(__file__).parent / "__main__.py",
-                *sys.argv[1:],
-                "--rate-limit-delay",
-            ),
-        )
-
     if config.SENTRY_DSN is not None:
         capture_exception(error)
         return
@@ -95,9 +80,3 @@ def handle_error(error: BaseException) -> None:
     print_tb(error.__traceback__)
     if isinstance(error, discord.app_commands.CommandInvokeError):
         handle_error(error.original)
-
-
-def _is_ratelimit(error: BaseException) -> bool:
-    if isinstance(error, discord.app_commands.CommandInvokeError):
-        error = error.original
-    return isinstance(error, discord.HTTPException) and error.status == 429
