@@ -83,11 +83,8 @@ class TTLCache:
             entity = REPOSITORIES[repo_name].get_issue(entity_id)
             kind = "Pull Request" if entity.pull_request else "Issue"
         except github.UnknownObjectException:
-            try:
-                entity = get_discussion(REPOSITORIES[repo_name], entity_id)
-                kind = "Discussion"
-            except github.GithubException:
-                raise KeyError(key)
+            entity = get_discussion(REPOSITORIES[repo_name], entity_id)
+            kind = "Discussion"
         self._cache[key] = (dt.datetime.now(), kind, cast(Entity, entity))
 
     def _refresh(self, key: CacheKey) -> None:
@@ -167,14 +164,20 @@ async def handle_entities(message: Message) -> None:
 
 
 def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
-    _, response = repo._requester.graphql_query(
-        query=DISCUSSION_QUERY,
-        variables={
-            "number": number,
-            "org": config.GITHUB_ORG,
-            "repo": repo.name,
-        },
+    _, response = repo._requester.requestJsonAndCheck(
+        "POST",
+        repo._requester.graphql_url,
+        input={
+            "query": DISCUSSION_QUERY,
+            "variables": {
+                "number": number,
+                "org": config.GITHUB_ORG,
+                "repo": repo.name,
+            },
+        }
     )
+    if "errors" in response:
+        raise KeyError((repo.name, number))
     data = response["data"]["repository"]["discussion"]
     return SimpleNamespace(**data)
 
