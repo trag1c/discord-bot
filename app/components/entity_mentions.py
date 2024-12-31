@@ -65,6 +65,18 @@ class DeleteMention(discord.ui.View):
         assert interaction.message
         await interaction.message.delete()
 
+        # Unlink the message from the M2M map
+        original_message = next(
+            (
+                message
+                for message, reply in message_to_mentions.items()
+                if reply == interaction.message
+            ),
+            None,
+        )
+        if original_message is not None:
+            del message_to_mentions[original_message]
+
 
 class Entity(Protocol):
     number: int
