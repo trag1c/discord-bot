@@ -163,7 +163,7 @@ def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
                 "org": config.GITHUB_ORG,
                 "repo": repo.name,
             },
-        }
+        },
     )
     if "errors" in response:
         raise KeyError((repo.name, number))
