@@ -95,11 +95,8 @@ class TTLCache:
             entity = REPOSITORIES[repo_name].get_issue(entity_id)
             kind = "Pull Request" if entity.pull_request else "Issue"
         except github.UnknownObjectException:
-            try:
-                entity = get_discussion(REPOSITORIES[repo_name], entity_id)
-                kind = "Discussion"
-            except github.GithubException:
-                raise KeyError(key)
+            entity = get_discussion(REPOSITORIES[repo_name], entity_id)
+            kind = "Discussion"
         self._cache[key] = (dt.datetime.now(), kind, cast(Entity, entity))
 
     def _refresh(self, key: CacheKey) -> None:
@@ -130,18 +127,7 @@ def _get_entities(message: discord.Message) -> tuple[str, int]:
     entities: list[str] = []
     for repo_name, number_ in matches:
         number = int(number_)
-        try:
-            kind, entity = entity_cache[cast(RepoName, repo_name or "main"), number]
-        except KeyError:
-            # (hopefully temporary) workaround for discussions not working
-            if number > 5000:
-                raise
-            kind = "Discussion"
-            entity = SimpleNamespace(
-                number=number,
-                title="?\n-# Entity not found, assuming it's a discussion",
-                html_url=f"https://github.com/ghostty-org/ghostty/discussions/{number}",
-            )
+        kind, entity = entity_cache[cast(RepoName, repo_name or "main"), number]
         if entity.number < 10 and repo_name is None:
             # Ignore single-digit mentions (likely a false positive)
             continue
@@ -179,14 +165,20 @@ async def handle_entities(message: Message) -> None:
 
 
 def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
-    _, response = repo._requester.graphql_query(
-        query=DISCUSSION_QUERY,
-        variables={
-            "number": number,
-            "org": config.GITHUB_ORG,
-            "repo": repo.name,
+    _, response = repo._requester.requestJsonAndCheck(
+        "POST",
+        repo._requester.graphql_url,
+        input={
+            "query": DISCUSSION_QUERY,
+            "variables": {
+                "number": number,
+                "org": config.GITHUB_ORG,
+                "repo": repo.name,
+            },
         },
     )
+    if "errors" in response:
+        raise KeyError((repo.name, number))
     data = response["data"]["repository"]["discussion"]
     return SimpleNamespace(**data)
 
