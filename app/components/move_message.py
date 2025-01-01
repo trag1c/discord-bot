@@ -77,9 +77,8 @@ class Ghostping(discord.ui.View):
     ) -> None:
         await interaction.response.defer(ephemeral=True)
         await (await self._channel.send(self._author.mention)).delete()
-        await interaction.followup.send(
-            f"Ghostpinged {self._author.name}.", ephemeral=True
-        )
+        escaped_name = self._author.name.replace("_", "\\_")
+        await interaction.followup.send(f"Ghostpinged {escaped_name}.", ephemeral=True)
 
 
 class HelpPostTitle(discord.ui.Modal, title="Turn into #help post"):
