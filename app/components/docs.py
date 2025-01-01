@@ -86,7 +86,9 @@ async def page_autocomplete(
 @bot.tree.command(name="docs", description="Link a documentation page.")
 @autocomplete(section=section_autocomplete, page=page_autocomplete)
 @SERVER_ONLY
-async def docs(interaction: discord.Interaction, section: str, page: str) -> None:
+async def docs(
+    interaction: discord.Interaction, section: str, page: str, message: str = ""
+) -> None:
     if section not in SECTIONS:
         await interaction.response.send_message(
             f"Invalid section {section!r}", ephemeral=True
@@ -104,5 +106,5 @@ async def docs(interaction: discord.Interaction, section: str, page: str) -> Non
         section_path, page = "config/keybind/", "sequence"
 
     await interaction.response.send_message(
-        URL_TEMPLATE.format(section=section_path, page=page)
+        f"{message}\n{URL_TEMPLATE.format(section=section_path, page=page)}"
     )
