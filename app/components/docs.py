@@ -41,7 +41,9 @@ class Entry(TypedDict):
     children: NotRequired[list[Entry]]
 
 
-def _load_children(sitemap: dict[str, list[str]], path: str, children: list[Entry]) -> None:
+def _load_children(
+    sitemap: dict[str, list[str]], path: str, children: list[Entry]
+) -> None:
     sitemap[path] = []
     for item in children:
         sitemap[path].append((page := item["path"].lstrip("/")) or "overview")
