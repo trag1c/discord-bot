@@ -75,6 +75,7 @@ def refresh_sitemap() -> None:
     # Manual adjustments
     sitemap["install"].remove("release-notes")
     sitemap["keybind"] = sitemap.pop("config-keybind")
+    del sitemap["install-release-notes"]
 
 
 sitemap: dict[str, list[str]] = {}
