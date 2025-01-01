@@ -76,6 +76,8 @@ def refresh_sitemap() -> None:
     sitemap["install"].remove("release-notes")
     sitemap["keybind"] = sitemap.pop("config-keybind")
     del sitemap["install-release-notes"]
+    for vt_section in (s for s in SECTIONS if s.startswith("vt-")):
+        sitemap["vt"].remove(vt_section.removeprefix("vt-"))
 
 
 sitemap: dict[str, list[str]] = {}
