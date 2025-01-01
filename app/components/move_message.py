@@ -77,8 +77,9 @@ class Ghostping(discord.ui.View):
     ) -> None:
         await interaction.response.defer(ephemeral=True)
         await (await self._channel.send(self._author.mention)).delete()
+        escaped_name = self._author.name.replace("_", "\\_")
         await interaction.followup.send(
-            f"Ghostpinged {self._author.name}.", ephemeral=True
+            f"Ghostpinged {escaped_name}.", ephemeral=True
         )
 
 
