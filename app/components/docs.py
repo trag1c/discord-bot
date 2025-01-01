@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import cast
+from typing import NotRequired, TypedDict, cast
 
 import discord
 from discord.app_commands import Choice, autocomplete
@@ -13,10 +15,16 @@ URL_TEMPLATE = "https://ghostty.org/docs/{section}{page}"
 
 SECTIONS = {
     "action": "config/keybind/reference#",
+    "config": "config/",
     "help": "help/",
     "install": "install/",
-    "vt": "vt/",
+    "keybind": "config/keybind/",
     "option": "config/reference#",
+    "vt-concepts": "vt/concepts/",
+    "vt-control": "vt/control/",
+    "vt-csi": "vt/csi/",
+    "vt-esc": "vt/esc/",
+    "vt": "vt/",
 }
 
 WEBSITE_PATHS = {
@@ -26,16 +34,30 @@ WEBSITE_PATHS = {
 }
 
 
+class Entry(TypedDict):
+    type: str
+    path: str
+    title: str
+    children: NotRequired[list[Entry]]
+
+
+def _load_children(sitemap: dict[str, list[str]], path: str, children: list[Entry]) -> None:
+    sitemap[path] = []
+    for item in children:
+        sitemap[path].append((page := item["path"].lstrip("/")) or "overview")
+        if item["type"] == "folder":
+            _load_children(sitemap, f"{path}-{page}", item.get("children", []))
+
+
 def refresh_sitemap() -> None:
-    # Reading vt/, install/, help/ subpages by checking nav.json
+    # Reading vt/, install/, help/, config/,
+    # config/keybind/ subpages by reading nav.json
     raw = cast(ContentFile, REPOSITORIES["web"].get_contents(WEBSITE_PATHS["nav"]))
-    nav = json.loads(raw.decoded_content)["items"]
+    nav: list[Entry] = json.loads(raw.decoded_content)["items"]
     for entry in nav:
         if entry["type"] != "folder":
             continue
-        sitemap[entry["path"].strip("/")] = list(
-            filter(None, (item["path"].strip("/") for item in entry["children"]))
-        )
+        _load_children(sitemap, entry["path"].lstrip("/"), entry.get("children", []))
 
     # Reading config references by parsing headings in .mdx files
     for key, path in WEBSITE_PATHS.items():
@@ -47,8 +69,10 @@ def refresh_sitemap() -> None:
             for line in raw.decoded_content.splitlines()
             if line.startswith(b"## ")
         ]
-    # Special case for /config/keybind/sequence
-    sitemap["action"].append("trigger-sequences")
+
+    # Manual adjustments
+    sitemap["install"].remove("release-notes")
+    sitemap["keybind"] = sitemap.pop("config-keybind")
 
 
 sitemap: dict[str, list[str]] = {}
@@ -101,9 +125,7 @@ async def docs(
         return
 
     section_path = SECTIONS[section]
-    # Special case for /config/keybind/sequence
-    if (section, page) == ("action", "trigger-sequences"):
-        section_path, page = "config/keybind/", "sequence"
+    page = page if page != "overview" else ""
 
     await interaction.response.send_message(
         f"{message}\n{URL_TEMPLATE.format(section=section_path, page=page)}"
