@@ -72,6 +72,7 @@ def _format_subtext(executor: discord.Member | None, msg_data: MessageData) -> s
     if reactions := msg_data.reactions.items():
         lines.append("   ".join(f"{emoji} x{count}" for emoji, count in reactions))
     if executor:
+        assert isinstance(msg_data.channel, discord.TextChannel)
         lines.append(f"Moved from {msg_data.channel.mention} by {executor.mention}")
     if skipped := msg_data.skipped_attachments:
         lines.append(f"(skipped {skipped} large attachment(s))")
