@@ -71,8 +71,11 @@ async def page_autocomplete(
     if not (interaction.data and (options := interaction.data.get("options"))):
         return []
     section = next(
-        cast(str, opt["value"]) for opt in options if opt["name"] == "section"
+        (cast(str, opt["value"]) for opt in options if opt["name"] == "section"),
+        None,
     )
+    if section is None:
+        return []
     return [
         Choice(name=name, value=name)
         for name in sitemap.get(section, [])
