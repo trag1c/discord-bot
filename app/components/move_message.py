@@ -50,7 +50,6 @@ class SelectChannel(discord.ui.View):
             if isinstance(channel, discord.Thread)
             else (channel, discord.utils.MISSING)
         )
-        assert webhook_channel is not None
         assert isinstance(webhook_channel, discord.TextChannel)
 
         webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
