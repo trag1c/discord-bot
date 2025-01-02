@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 import io
 from textwrap import shorten
 from typing import TYPE_CHECKING, NamedTuple
@@ -12,6 +13,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from typing_extensions import TypeIs
+
+DISCORD_EPOCH = 1420070400000  # 2015-01-01
 
 MAX_ATTACHMENT_SIZE = 67_108_864  # 64 MiB
 
@@ -135,6 +138,12 @@ async def try_dm(account: Account, content: str) -> None:
         await account.send(content)
     except discord.Forbidden:
         print(f"Failed to DM {account} with: {shorten(content, width=50)}")
+
+
+def snowflake_timestamp(snowflake: int) -> dt.datetime:
+    return dt.datetime.fromtimestamp(
+        ((snowflake >> 22) + DISCORD_EPOCH) / 1000, tz=dt.UTC
+    )
 
 
 async def _get_original_message(message: discord.Message) -> discord.Message | None:
