@@ -9,7 +9,7 @@ from app.setup import bot, config
 from app.utils import snowflake_timestamp
 
 
-@tasks.loop(hours=24)
+@tasks.loop(hours=1)
 async def autoclose_solved_posts() -> None:
     closed_posts: list[discord.Thread] = []
     failures: list[discord.Thread] = []
