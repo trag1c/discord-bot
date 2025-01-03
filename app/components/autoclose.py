@@ -6,7 +6,6 @@ import discord
 from discord.ext import tasks
 
 from app.setup import bot, config
-from app.utils import snowflake_timestamp
 
 
 @tasks.loop(hours=1)
@@ -25,7 +24,7 @@ async def autoclose_solved_posts() -> None:
             failures.append(post)
             continue
         one_day_ago = dt.datetime.now(tz=dt.UTC) - dt.timedelta(hours=24)
-        if snowflake_timestamp(post.last_message_id) < one_day_ago:
+        if discord.utils.snowflake_time(post.last_message_id) < one_day_ago:
             await post.edit(archived=True)
             closed_posts.append(post)
 
