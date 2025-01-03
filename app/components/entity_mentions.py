@@ -127,7 +127,10 @@ def _get_entities(message: discord.Message) -> tuple[str, int]:
     entities: list[str] = []
     for repo_name, number_ in matches:
         number = int(number_)
-        kind, entity = entity_cache[cast(RepoName, repo_name or "main"), number]
+        try:
+            kind, entity = entity_cache[cast(RepoName, repo_name or "main"), number]
+        except KeyError:
+            continue
         if entity.number < 10 and repo_name is None:
             # Ignore single-digit mentions (likely a false positive)
             continue
