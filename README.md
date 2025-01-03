@@ -10,7 +10,10 @@ community moderation more efficient.
 ---
 
 - [Bot setup](#bot-setup)
-  - [1. Creating a Discord application](#1-creating-a-discord-application)
+  - [1. Preparing a Discord application](#1-preparing-a-discord-application)
+    - [1.1. Creating a Discord application](#11-creating-a-discord-application)
+    - [1.2. Getting a Discord token](#12-getting-a-discord-token)
+    - [1.3. Inviting the bot to your server](#13-inviting-the-bot-to-your-server)
   - [2. Getting a GitHub token](#2-getting-a-github-token)
   - [3. Preparing a Discord server](#3-preparing-a-discord-server)
   - [4. Preparing the `.env` file](#4-preparing-the-env-file)
@@ -27,22 +30,39 @@ community moderation more efficient.
 
 # Bot setup
 
-## 1. Creating a Discord application
+## 1. Preparing a Discord application
+
+### 1.1. Creating a Discord application
+
 1. Go to the [Discord Developer Portal][discord-docs].
-2. Click on the "New Application" button and pick a name for it.
-3. Go to the "Bot" section, use "Reset Token" and save the new token.
-4. In that same section, enable the "Server Members Intent" and "Message Content
-   Intent".
-5. Go to the "OAuth2" section, select the `bot` scope, and choose the
-   permissions you want to grant your bot; Ghostty Bot currently relies the
-   following (bitfield `1125900712192000`):
+2. Click on the "New Application" button.
+3. Pick a name for your bot.
+
+
+### 1.2. Getting a Discord token
+
+On your newly created bot's dashboard:
+1. Go to "Bot" on the sidebar.
+2. Click on the "Reset Token" button.
+3. Save the newly generated token for later.
+4. Under "Privileged Gateway Intents", enable:
+   * Server Members Intent
+   * Message Content Intent
+
+### 1.3. Inviting the bot to your server
+1. Go to "OAuth2" on the sidebar.
+2. Under "OAuth2 URL Generator", select the `bot` scope.
+3. Under "Bot Permissions" that appears, choose the following permissions:
+   * Attach Files
+   * Manage Messages
    * Manage Roles
+   * Manage Threads
    * Manage Webhooks
    * Send Messages
-   * Manage Messages
-   * Attach Files
    * Use External Apps
-6. Use the generated URL at the bottom of the page to invite the bot to your
+
+   (your URL should contain a `1125917892061184` bitfield for `permissions`)
+4. Use the generated URL at the bottom of the page to invite the bot to your
    server.
 
 
