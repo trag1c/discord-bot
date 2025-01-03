@@ -160,6 +160,7 @@ This bot runs on Python 3.11+ and is managed with [Poetry]. To get started:
 
 A command for linking Ghostty documentation with autocomplete and an optional
 message option:
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/2cc0f7f0-8145-4dca-b7e6-5db18d939427" alt="/docs command autocomplete" height="250px">
   <img src="https://github.com/user-attachments/assets/0938881f-80ad-44d0-8414-915324f2761e" alt="/docs command message option" height="250px">
@@ -181,6 +182,7 @@ The bot also keeps a TTL-like cache to avoid looking up the same entity multiple
 times (with data being refetched 30 minutes since last use), making the bot more
 responsive (the example below can take ~3s on the first lookup and ~50µs on
 subsequent lookups).
+
 <img src="https://github.com/user-attachments/assets/aa899231-8ca0-4711-8c8b-2cfe5b6a98bb" alt="Entity mentions examle" width="75%">
 
 
@@ -193,6 +195,7 @@ The bot will delete any message:
 
 It will also DM users about the deletion and provide an explanation to make it
 less confusing:
+
 <img src="https://github.com/user-attachments/assets/263c59cb-19b5-4308-80d8-de464884692f" alt="Message filter notification" width="50%">
 
 ## Moving messages
