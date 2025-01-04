@@ -59,8 +59,7 @@ On your newly created bot's dashboard:
    * Manage Threads
    * Manage Webhooks
    * Send Messages
-   * Use External Apps
-
+   * Use External Apps\
    (your URL should contain a `1125917892061184` bitfield for `permissions`)
 4. Use the generated URL at the bottom of the page to invite the bot to your
    server.
