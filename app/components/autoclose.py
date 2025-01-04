@@ -29,7 +29,7 @@ async def autoclose_solved_posts() -> None:
             closed_posts.append(post)
 
     log_channel = cast(discord.TextChannel, bot.get_channel(config.LOG_CHANNEL_ID))
-    msg = f"Scanned {open_posts} open posts in {help_channel.mention}.\n"
+    msg = f"Scanned {open_posts:,} open posts in {help_channel.mention}.\n"
     if closed_posts:
         msg += f"Automatically closed {_post_list(closed_posts)}"
     if failures:
@@ -42,6 +42,8 @@ def _has_tag(post: discord.Thread, substring: str) -> bool:
 
 
 def _post_list(posts: Sequence[discord.Thread]) -> str:
-    return f"{len(posts)} solved posts:\n" + "\n".join(
-        f"* {post.mention}" for post in posts
+    return (
+        f"{len(posts)} solved posts:\n"
+        + "".join(f"* {post.mention}\n" for post in posts[:30])
+        + (f"* [...] ({len(posts) - 30:,} more)\n" if len(posts) > 30 else "")
     )
