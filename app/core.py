@@ -8,6 +8,7 @@ import discord
 from discord.ext import commands
 from sentry_sdk import capture_exception
 
+from app.components.autoclose import autoclose_solved_posts
 from app.components.docs import refresh_sitemap
 from app.components.entity_mentions import ENTITY_REGEX, handle_entities
 from app.components.message_filter import check_message_filters
@@ -18,6 +19,7 @@ from app.utils import is_dm, is_mod, try_dm
 @bot.event
 async def on_ready() -> None:
     print(f"Bot logged on as {bot.user}!")
+    autoclose_solved_posts.start()
 
 
 @bot.event
