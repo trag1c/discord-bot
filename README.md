@@ -233,7 +233,15 @@ less confusing:
 
 ## Moving messages
 
-TODO after [#112](https://github.com/ghostty-org/discord-bot/issues/112)
+Used for moving messages to more fitting channels (e.g. off-topic questions
+in `#development` to `#tech`). 
+
+<img src="https://github.com/user-attachments/assets/e2e77e43-6200-4ab3-87ea-33e269e5a5cd" alt="Move message example" width="70%">
+
+Ghostty troubleshooting questions can be turned into `#help` posts with a
+related feature:
+
+<img src="https://github.com/user-attachments/assets/9943a31c-3b0e-4606-99a0-5182ce114b87" alt="Turn into #help post example" width="70%">
 
 
 [bot-repo]: https://github.com/ghostty-org/discord-bot
