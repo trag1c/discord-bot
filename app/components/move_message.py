@@ -75,7 +75,7 @@ class Ghostping(discord.ui.View):
         style=discord.ButtonStyle.secondary,
     )
     async def ghostping(
-        self, interaction: discord.Interaction, _button: discord.ui.Button
+        self, interaction: discord.Interaction, but: discord.ui.Button
     ) -> None:
         await interaction.response.defer(ephemeral=True)
         await (await self._channel.send(self._author.mention)).delete()
