@@ -5,6 +5,7 @@ import discord
 from app.setup import bot, config
 from app.utils import (
     SERVER_ONLY,
+    GuildTextChannel,
     get_or_create_webhook,
     is_dm,
     is_helper,
@@ -34,6 +35,7 @@ class SelectChannel(discord.ui.View):
             return
         self._used = True
         channel = await bot.fetch_channel(sel.values[0].id)
+        assert isinstance(channel, GuildTextChannel)
         if channel.id == self.message.channel.id:
             await interaction.response.send_message(
                 "You can't move a message to the same channel.", ephemeral=True
@@ -46,23 +48,20 @@ class SelectChannel(discord.ui.View):
             if isinstance(channel, discord.Thread)
             else (channel, discord.utils.MISSING)
         )
+        assert isinstance(webhook_channel, (discord.TextChannel, discord.ForumChannel))
+
         webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
         await move_message_via_webhook(
             webhook, self.message, self.executor, thread=thread
         )
         await interaction.followup.send(
             content=f"Moved the message to {channel.mention}.",
-            view=Ghostping(
-                cast(discord.Member, self.message.author),
-                cast(discord.abc.Messageable, channel),
-            ),
+            view=Ghostping(cast(discord.Member, self.message.author), channel),
         )
 
 
 class Ghostping(discord.ui.View):
-    def __init__(
-        self, author: discord.Member, channel: discord.abc.Messageable
-    ) -> None:
+    def __init__(self, author: discord.Member, channel: GuildTextChannel) -> None:
         super().__init__()
         self._author = author
         self._channel = channel
