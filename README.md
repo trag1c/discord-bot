@@ -30,6 +30,25 @@ community moderation more efficient.
 
 # Bot setup
 
+> [!warning]
+> The bot is tailor-made for the Ghostty community and will most definitely be
+> unsuitable for other servers. If you're looking to use similar features, you
+> should consider looking for a more general-purpose bot, or forking this
+> project and modifying it to suit your needs. That said, the core intent of
+> this guide is to help contributors set up their development environment for
+> building and testing new features. **Contributions are the goal, not
+> standalone usage.**
+>
+> The bot is built and deployed using Nix. While it's possible to develop the
+> bot without it, the preferred and supported method is through a Nix-based
+> workflow. To that end:
+> * The bot must sucessfully build and run using the Nix setup.
+> * If you're developing outside of Nix, you are responsible for troubleshooting
+>   any issues that arise.\
+>   **As a tip:** as long as no changes are made to the project's configuration
+>   (e.g. build dependencies), if the bot successfully runs outside of Nix, it
+>   will most likely work within Nix as well.
+
 ## 1. Preparing a Discord application
 
 ### 1.1. Creating a Discord application
@@ -110,11 +129,6 @@ Below are explanations for each variable:
 
 
 ## 5. Running the bot
-
-> [!note]
-> The Nix environment is the only supported development environment. You can
-> develop this without Nix, of course, but I'm not going to help you figure it
-> out.
 
 ### Nix
 
