@@ -42,7 +42,7 @@ community moderation more efficient.
 > The bot is built and deployed using Nix. While it's possible to develop the
 > bot without it, the preferred and supported method is through a Nix-based
 > workflow. To that end:
-> * The bot must sucessfully build and run using the Nix setup.
+> * The bot must successfully build and run using the Nix setup.
 > * If you're developing outside of Nix, you are responsible for troubleshooting
 >   any issues that arise.\
 >   **As a tip:** as long as no changes are made to the project's configuration
