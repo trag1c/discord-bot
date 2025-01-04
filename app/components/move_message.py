@@ -71,7 +71,7 @@ class Ghostping(discord.ui.View):
     ) -> None:
         button.disabled = True
         await interaction.response.edit_message(
-            content=f"Moved message to {self._channel.mention} and ghostpinged {self._author.mention}.",
+            content=f"Moved the message to {self._channel.mention} and ghostpinged {self._author.mention}.",
             view=self,
         )
         await (await self._channel.send(self._author.mention)).delete()
