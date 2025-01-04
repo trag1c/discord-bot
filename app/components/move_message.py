@@ -32,9 +32,6 @@ class SelectChannel(discord.ui.View):
         self, interaction: discord.Interaction, sel: discord.ui.ChannelSelect
     ) -> None:
         if self._used:
-            await interaction.response.send_message(
-                "Channel selector was already used.", ephemeral=True
-            )
             return
         self._used = True
         channel = await bot.fetch_channel(sel.values[0].id)
