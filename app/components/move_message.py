@@ -48,7 +48,7 @@ class SelectChannel(discord.ui.View):
             if isinstance(channel, discord.Thread)
             else (channel, discord.utils.MISSING)
         )
-        assert isinstance(webhook_channel, GuildTextChannel)
+        assert isinstance(webhook_channel, (discord.TextChannel, discord.ForumChannel))
 
         webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
         await move_message_via_webhook(
@@ -56,15 +56,12 @@ class SelectChannel(discord.ui.View):
         )
         await interaction.followup.send(
             content=f"Moved the message to {channel.mention}.",
-            view=Ghostping(
-                cast(discord.Member, self.message.author),
-                cast(discord.TextChannel, channel),
-            ),
+            view=Ghostping(cast(discord.Member, self.message.author), channel),
         )
 
 
 class Ghostping(discord.ui.View):
-    def __init__(self, author: discord.Member, channel: discord.TextChannel) -> None:
+    def __init__(self, author: discord.Member, channel: GuildTextChannel) -> None:
         super().__init__()
         self._author = author
         self._channel = channel

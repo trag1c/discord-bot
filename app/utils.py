@@ -20,7 +20,7 @@ SERVER_ONLY = discord.app_commands.allowed_contexts(
 )
 
 Account = discord.User | discord.Member
-GuildTextChannel = discord.TextChannel | discord.ForumChannel | discord.Thread
+GuildTextChannel = discord.TextChannel | discord.Thread
 
 
 class MessageData(NamedTuple):
