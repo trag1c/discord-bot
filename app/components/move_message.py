@@ -35,7 +35,7 @@ class SelectChannel(discord.ui.View):
             return
         self._used = True
         channel = await bot.fetch_channel(sel.values[0].id)
-        assert isinstance(channel, (discord.abc.GuildChannel, discord.Thread))
+        assert isinstance(channel, GuildTextChannel)
         if channel.id == self.message.channel.id:
             await interaction.response.send_message(
                 "You can't move a message to the same channel.", ephemeral=True
@@ -58,15 +58,13 @@ class SelectChannel(discord.ui.View):
             content=f"Moved the message to {channel.mention}.",
             view=Ghostping(
                 cast(discord.Member, self.message.author),
-                cast(discord.abc.Messageable, channel),
+                cast(discord.TextChannel, channel),
             ),
         )
 
 
 class Ghostping(discord.ui.View):
-    def __init__(
-        self, author: discord.Member, channel: discord.abc.Messageable
-    ) -> None:
+    def __init__(self, author: discord.Member, channel: discord.TextChannel) -> None:
         super().__init__()
         self._author = author
         self._channel = channel
