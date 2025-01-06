@@ -19,7 +19,7 @@ SERVER_ONLY = discord.app_commands.allowed_contexts(
     guilds=True, dms=False, private_channels=False
 )
 
-Account = discord.User | discord.Member
+type Account = discord.User | discord.Member
 GuildTextChannel = discord.TextChannel | discord.Thread
 
 

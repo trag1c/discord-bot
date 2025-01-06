@@ -35,9 +35,9 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
 }
 """
 
-RepoName = Literal["web", "bot", "main"]
-CacheKey = tuple[RepoName, int]
-EntityKind = Literal["Pull Request", "Issue", "Discussion"]
+type RepoName = Literal["web", "bot", "main"]
+type CacheKey = tuple[RepoName, int]
+type EntityKind = Literal["Pull Request", "Issue", "Discussion"]
 
 
 class DeleteMention(discord.ui.View):

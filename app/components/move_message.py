@@ -43,7 +43,7 @@ class SelectChannel(discord.ui.View):
             if isinstance(channel, discord.Thread)
             else (channel, discord.utils.MISSING)
         )
-        assert isinstance(webhook_channel, (discord.TextChannel, discord.ForumChannel))
+        assert isinstance(webhook_channel, discord.TextChannel | discord.ForumChannel)
 
         webhook = await get_or_create_webhook("Ghostty Moderator", webhook_channel)
         await move_message_via_webhook(
