@@ -147,7 +147,7 @@ $ ruff format
 
 ### Non-Nix
 
-This bot runs on Python 3.11+ and is managed with [Poetry]. To get started:
+This bot runs on Python 3.12+ and is managed with [Poetry]. To get started:
 1. Install Poetry (e.g. via [uv] or [pipx]).
 2. Install the project and run the bot:
    ```console
