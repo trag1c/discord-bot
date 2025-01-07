@@ -29,6 +29,8 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
     discussion(number: $number) {
       title
       number
+      user: author { login }
+      created_at: createdAt
       html_url: url
     }
   }
@@ -78,10 +80,16 @@ class DeleteMention(discord.ui.View):
             del message_to_mentions[original_message]
 
 
+class GitHubUser(Protocol):
+    login: str
+
+
 class Entity(Protocol):
     number: int
     title: str
     html_url: str
+    user: GitHubUser
+    created_at: dt.datetime
 
 
 class TTLCache:
@@ -191,7 +199,11 @@ def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
     if "errors" in response:
         raise KeyError((repo.name, number))
     data = response["data"]["repository"]["discussion"]
-    return SimpleNamespace(**data)
+    return SimpleNamespace(
+        user=SimpleNamespace(login=data.pop("user")["login"]),
+        created_at=dt.datetime.fromisoformat(data.pop("created_at")),
+        **data,
+    )
 
 
 @bot.event
