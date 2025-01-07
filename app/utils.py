@@ -103,8 +103,16 @@ async def move_message_via_webhook(
     thread_name: str = discord.utils.MISSING,
 ) -> discord.WebhookMessage:
     msg_data = await scrape_message_data(message)
+
+    subtext = _format_subtext(executor, msg_data)
+    if len(content := msg_data.content + subtext) > 2000:
+        msg_data.attachments.append(
+            discord.File(io.BytesIO(msg_data.content.encode()), filename="content.md")
+        )
+        content = f"{subtext}\n-# (content attached)"
+
     msg = await webhook.send(
-        content=msg_data.content + _format_subtext(executor, msg_data),
+        content=content,
         poll=message.poll or discord.utils.MISSING,
         username=message.author.display_name,
         avatar_url=message.author.display_avatar.url,
