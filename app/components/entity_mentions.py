@@ -33,6 +33,7 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
       user: author { login }
       created_at: createdAt
       html_url: url
+      answered: isAnswered
     }
   }
 }
