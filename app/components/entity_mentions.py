@@ -23,6 +23,19 @@ REPOSITORIES: dict[str, Repository] = {
     kind: gh.get_repo(f"{config.GITHUB_ORG}/{name}", lazy=True)
     for kind, name in config.GITHUB_REPOS.items()
 }
+EMOJI_NAMES = frozenset(
+    {
+        "discussion_answered",
+        "issue_closed_completed",
+        "issue_closed_unplanned",
+        "issue_draft",
+        "issue_open",
+        "pull_closed",
+        "pull_draft",
+        "pull_merged",
+        "pull_open",
+    }
+)
 
 DISCUSSION_QUERY = """
 query getDiscussion($number: Int!, $org: String!, $repo: String!) {
@@ -130,6 +143,21 @@ class TTLCache:
 entity_cache = TTLCache(1800)  # 30 minutes
 
 message_to_mentions: dict[discord.Message, discord.Message] = {}
+
+entity_emojis: dict[str, discord.Emoji] = {}
+
+
+async def load_emojis() -> None:
+    guild = next(g for g in bot.guilds if "ghostty" in g.name.casefold())
+    for emoji in guild.emojis:
+        if emoji.name in EMOJI_NAMES:
+            entity_emojis[emoji.name] = emoji
+    if len(entity_emojis) < len(EMOJI_NAMES):
+        log_channel = cast(discord.TextChannel, bot.get_channel(config.LOG_CHANNEL_ID))
+        await log_channel.send(
+            "Failed to load the following emojis: "
+            + ", ".join(EMOJI_NAMES - entity_emojis.keys())
+        )
 
 
 def _format_mention(entity: Entity, kind: EntityKind) -> str:
