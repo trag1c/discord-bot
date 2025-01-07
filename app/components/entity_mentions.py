@@ -8,6 +8,8 @@ from typing import Literal, Protocol, cast
 import discord
 import github
 from discord import Message
+from github.Issue import Issue
+from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 from app.setup import bot, config, gh
@@ -170,7 +172,20 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
         f" on {entity.created_at:%b %d, %Y}\n"
     )
 
-    return f"{headline}\n{subtext}"
+    if isinstance(entity, Issue):
+        state = "open" if entity.state == "open" else "closed_"
+        if entity.state == "closed":
+            state += "completed" if entity.state_reason == "completed" else "unplanned"
+        emoji = entity_emojis.get(f"issue_{state}")
+    elif isinstance(entity, PullRequest):
+        state = "draft" if entity.draft else "merged" if entity.merged else entity.state
+        emoji = entity_emojis.get(f"pull_{state}")
+    else:
+        # Discussion
+        answered = getattr(entity, "answered", False)
+        emoji = entity_emojis.get("discussion_answered" if answered else "issue_draft")
+
+    return f"{emoji} {headline}\n{subtext}"
 
 
 def _get_entities(message: discord.Message) -> tuple[str, int]:
