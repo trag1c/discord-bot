@@ -137,11 +137,11 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
     # Include author and creation date
     author = entity.user.login
     subtext = (
-        f"\n-# by [`{author}`](<{GITHUB_URL}/{author}>)"
+        f"-# by [`{author}`](<{GITHUB_URL}/{author}>)"
         f" on {entity.created_at:%b %d, %Y}\n"
     )
 
-    return headline + subtext
+    return f"{headline}\n{subtext}"
 
 
 def _get_entities(message: discord.Message) -> tuple[str, int]:
