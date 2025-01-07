@@ -8,13 +8,16 @@ from typing import Literal, Protocol, cast
 import discord
 import github
 from discord import Message
+from github.Issue import Issue
+from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 from app.setup import bot, config, gh
 from app.utils import is_dm, try_dm
 
+GITHUB_URL = "https://github.com"
 ENTITY_REGEX = re.compile(r"(?:\b(web|bot|main))?#(\d{1,6})(?!\.\d)\b")
-ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n<{entity.html_url}>\n"
+ENTITY_TEMPLATE = "**{kind} [#{entity.number}](<{entity.html_url}>):** {entity.title}"
 IGNORED_MESSAGE_TYPES = frozenset(
     (discord.MessageType.thread_created, discord.MessageType.channel_name_change)
 )
@@ -22,6 +25,19 @@ REPOSITORIES: dict[str, Repository] = {
     kind: gh.get_repo(f"{config.GITHUB_ORG}/{name}", lazy=True)
     for kind, name in config.GITHUB_REPOS.items()
 }
+EMOJI_NAMES = frozenset(
+    {
+        "discussion_answered",
+        "issue_closed_completed",
+        "issue_closed_unplanned",
+        "issue_draft",
+        "issue_open",
+        "pull_closed",
+        "pull_draft",
+        "pull_merged",
+        "pull_open",
+    }
+)
 
 DISCUSSION_QUERY = """
 query getDiscussion($number: Int!, $org: String!, $repo: String!) {
@@ -29,7 +45,10 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
     discussion(number: $number) {
       title
       number
+      user: author { login }
+      created_at: createdAt
       html_url: url
+      answered: isAnswered
     }
   }
 }
@@ -78,10 +97,16 @@ class DeleteMention(discord.ui.View):
             del message_to_mentions[original_message]
 
 
+class GitHubUser(Protocol):
+    login: str
+
+
 class Entity(Protocol):
     number: int
     title: str
     html_url: str
+    user: GitHubUser
+    created_at: dt.datetime
 
 
 class TTLCache:
@@ -91,11 +116,15 @@ class TTLCache:
 
     def _fetch_entity(self, key: CacheKey) -> None:
         repo_name, entity_id = key
+        repo = REPOSITORIES[repo_name]
         try:
-            entity = REPOSITORIES[repo_name].get_issue(entity_id)
-            kind = "Pull Request" if entity.pull_request else "Issue"
+            entity = repo.get_issue(entity_id)
+            kind = "Issue"
+            if entity.pull_request:
+                entity = repo.get_pull(entity_id)
+                kind = "Pull Request"
         except github.UnknownObjectException:
-            entity = get_discussion(REPOSITORIES[repo_name], entity_id)
+            entity = get_discussion(repo, entity_id)
             kind = "Discussion"
         self._cache[key] = (dt.datetime.now(), kind, cast(Entity, entity))
 
@@ -117,12 +146,55 @@ entity_cache = TTLCache(1800)  # 30 minutes
 
 message_to_mentions: dict[discord.Message, discord.Message] = {}
 
+entity_emojis: dict[str, discord.Emoji] = {}
+
+
+async def load_emojis() -> None:
+    guild = next(g for g in bot.guilds if "ghostty" in g.name.casefold())
+    for emoji in guild.emojis:
+        if emoji.name in EMOJI_NAMES:
+            entity_emojis[emoji.name] = emoji
+    if len(entity_emojis) < len(EMOJI_NAMES):
+        log_channel = cast(discord.TextChannel, bot.get_channel(config.LOG_CHANNEL_ID))
+        await log_channel.send(
+            "Failed to load the following emojis: "
+            + ", ".join(EMOJI_NAMES - entity_emojis.keys())
+        )
+
+
+def _format_mention(entity: Entity, kind: EntityKind) -> str:
+    headline = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
+
+    # Include author and creation date
+    author = entity.user.login
+    subtext = (
+        f"-# by [`{author}`](<{GITHUB_URL}/{author}>)"
+        f" on {entity.created_at:%b %d, %Y}\n"
+    )
+
+    if isinstance(entity, Issue):
+        state = "open" if entity.state == "open" else "closed_"
+        if entity.state == "closed":
+            state += "completed" if entity.state_reason == "completed" else "unplanned"
+        emoji = entity_emojis.get(f"issue_{state}")
+    elif isinstance(entity, PullRequest):
+        state = "draft" if entity.draft else "merged" if entity.merged else entity.state
+        emoji = entity_emojis.get(f"pull_{state}")
+    else:
+        # Discussion
+        answered = getattr(entity, "answered", False)
+        emoji = entity_emojis.get("discussion_answered" if answered else "issue_draft")
+
+    return f"{emoji or ":question:"} {headline}\n{subtext}"
+
 
 def _get_entities(message: discord.Message) -> tuple[str, int]:
     matches = dict.fromkeys(m.groups() for m in ENTITY_REGEX.finditer(message.content))
+    omitted = 0
     if len(matches) > 10:
         # Too many mentions, preventing a DoS
-        return "", 0
+        omitted = len(matches) - 10
+        matches = list(matches)[:10]
 
     entities: list[str] = []
     for repo_name, number_ in matches:
@@ -134,7 +206,14 @@ def _get_entities(message: discord.Message) -> tuple[str, int]:
         if entity.number < 10 and repo_name is None:
             # Ignore single-digit mentions (likely a false positive)
             continue
-        entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
+        entities.append(_format_mention(entity, kind))
+
+    if len("\n".join(entities)) > 2000:
+        while len("\n".join(entities)) > 1975:  # Accounting for omission note
+            entities.pop()
+            omitted += 1
+        entities.append(f"-# Omitted {omitted} mention" + ("s" * (omitted > 1)))
+
     return "\n".join(dict.fromkeys(entities)), len(entities)
 
 
@@ -183,7 +262,11 @@ def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
     if "errors" in response:
         raise KeyError((repo.name, number))
     data = response["data"]["repository"]["discussion"]
-    return SimpleNamespace(**data)
+    return SimpleNamespace(
+        user=SimpleNamespace(login=data.pop("user")["login"]),
+        created_at=dt.datetime.fromisoformat(data.pop("created_at")),
+        **data,
+    )
 
 
 @bot.event
