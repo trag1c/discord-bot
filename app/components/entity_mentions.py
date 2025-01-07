@@ -13,6 +13,7 @@ from github.Repository import Repository
 from app.setup import bot, config, gh
 from app.utils import is_dm, try_dm
 
+GITHUB_URL = "https://github.com"
 ENTITY_REGEX = re.compile(r"(?:\b(web|bot|main))?#(\d{1,6})(?!\.\d)\b")
 ENTITY_TEMPLATE = "**{kind} [#{entity.number}](<{entity.html_url}>):** {entity.title}"
 IGNORED_MESSAGE_TYPES = frozenset(
@@ -131,7 +132,16 @@ message_to_mentions: dict[discord.Message, discord.Message] = {}
 
 
 def _format_mention(entity: Entity, kind: EntityKind) -> str:
-    return ENTITY_TEMPLATE.format(kind=kind, entity=entity)
+    headline = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
+
+    # Include author and creation date
+    author = entity.user.login
+    subtext = (
+        f"\n-# by [`{author}`](<{GITHUB_URL}/{author}>)"
+        f" on {entity.created_at:%b %d, %Y}\n"
+    )
+
+    return headline + subtext
 
 
 def _get_entities(message: discord.Message) -> tuple[str, int]:
