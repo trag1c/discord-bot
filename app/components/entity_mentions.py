@@ -190,9 +190,11 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
 
 def _get_entities(message: discord.Message) -> tuple[str, int]:
     matches = dict.fromkeys(m.groups() for m in ENTITY_REGEX.finditer(message.content))
+    omitted = 0
     if len(matches) > 10:
         # Too many mentions, preventing a DoS
-        return "", 0
+        omitted = len(matches) - 10
+        matches = list(matches)[:10]
 
     entities: list[str] = []
     for repo_name, number_ in matches:
@@ -205,6 +207,13 @@ def _get_entities(message: discord.Message) -> tuple[str, int]:
             # Ignore single-digit mentions (likely a false positive)
             continue
         entities.append(_format_mention(entity, kind))
+
+    if len("\n".join(entities)) > 2000:
+        while len("\n".join(entities)) > 1975:  # Accounting for omission note
+            entities.pop()
+            omitted += 1
+        entities.append(f"-# Omitted {omitted} mention" + ("s" * (omitted > 1)))
+
     return "\n".join(dict.fromkeys(entities)), len(entities)
 
 
