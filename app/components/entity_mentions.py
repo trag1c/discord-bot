@@ -122,6 +122,10 @@ entity_cache = TTLCache(1800)  # 30 minutes
 message_to_mentions: dict[discord.Message, discord.Message] = {}
 
 
+def _format_mention(entity: Entity, kind: EntityKind) -> str:
+    return ENTITY_TEMPLATE.format(kind=kind, entity=entity)
+
+
 def _get_entities(message: discord.Message) -> tuple[str, int]:
     matches = dict.fromkeys(m.groups() for m in ENTITY_REGEX.finditer(message.content))
     if len(matches) > 10:
@@ -138,7 +142,7 @@ def _get_entities(message: discord.Message) -> tuple[str, int]:
         if entity.number < 10 and repo_name is None:
             # Ignore single-digit mentions (likely a false positive)
             continue
-        entities.append(ENTITY_TEMPLATE.format(kind=kind, entity=entity))
+        entities.append(_format_mention(entity, kind))
     return "\n".join(dict.fromkeys(entities)), len(entities)
 
 
