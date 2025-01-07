@@ -14,7 +14,7 @@ from app.setup import bot, config, gh
 from app.utils import is_dm, try_dm
 
 ENTITY_REGEX = re.compile(r"(?:\b(web|bot|main))?#(\d{1,6})(?!\.\d)\b")
-ENTITY_TEMPLATE = "**{kind} #{entity.number}:** {entity.title}\n<{entity.html_url}>\n"
+ENTITY_TEMPLATE = "**{kind} [#{entity.number}](<{entity.html_url}>):** {entity.title}"
 IGNORED_MESSAGE_TYPES = frozenset(
     (discord.MessageType.thread_created, discord.MessageType.channel_name_change)
 )
