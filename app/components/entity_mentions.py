@@ -91,11 +91,15 @@ class TTLCache:
 
     def _fetch_entity(self, key: CacheKey) -> None:
         repo_name, entity_id = key
+        repo = REPOSITORIES[repo_name]
         try:
-            entity = REPOSITORIES[repo_name].get_issue(entity_id)
-            kind = "Pull Request" if entity.pull_request else "Issue"
+            entity = repo.get_issue(entity_id)
+            kind = "Issue"
+            if entity.pull_request:
+                entity = repo.get_pull(entity_id)
+                kind = "Pull Request"
         except github.UnknownObjectException:
-            entity = get_discussion(REPOSITORIES[repo_name], entity_id)
+            entity = get_discussion(repo, entity_id)
             kind = "Discussion"
         self._cache[key] = (dt.datetime.now(), kind, cast(Entity, entity))
 
