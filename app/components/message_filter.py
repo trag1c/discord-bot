@@ -1,5 +1,6 @@
 import re
 from collections.abc import Callable
+from io import BytesIO
 from typing import NamedTuple
 
 import discord
@@ -12,7 +13,8 @@ URL_REGEX = re.compile(
 )
 MESSAGE_DELETION_TEMPLATE = (
     "Hey! Your message in {} was deleted because it did not contain {}."
-    " Make sure to include {}, and respond in threads."
+    " Make sure to include {}, and respond in threads.\n"
+    "Here's the message you tried to send:\n\n"
 )
 REGULAR_MESSAGE_TYPES = frozenset(
     {discord.MessageType.default, discord.MessageType.reply}
@@ -54,11 +56,18 @@ async def check_message_filters(message: discord.Message) -> bool:
             continue
 
         assert isinstance(message.channel, discord.TextChannel)
-        await try_dm(
-            message.author,
-            MESSAGE_DELETION_TEMPLATE.format(
-                message.channel.mention, *msg_filter.template_fillers
-            ),
+
+        content = MESSAGE_DELETION_TEMPLATE.format(
+            message.channel.mention, *msg_filter.template_fillers
         )
+        if len(content + message.content) > 2000:
+            attachments = [
+                discord.File(BytesIO(message.content.encode()), filename="content.md")
+            ]
+        else:
+            attachments = []
+            content += message.content
+
+        await try_dm(message.author, content, files=attachments)
         return True
     return False
