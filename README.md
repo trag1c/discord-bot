@@ -211,7 +211,7 @@ with prefixes:
 * `main` for [ghostty-org/ghostty][main-repo] (default), e.g. `main#2137` or
   just `#2137`
 
-The bot also keeps a TTL-like cache to avoid looking up the same entity multiple
+The bot also keeps a TTR cache to avoid looking up the same entity multiple
 times (with data being refetched 30 minutes since last use), making the bot more
 responsive (the example below can take ~3s on the first lookup and ~50µs on
 subsequent lookups).

@@ -109,9 +109,9 @@ class Entity(Protocol):
     created_at: dt.datetime
 
 
-class TTLCache:
-    def __init__(self, ttl: int) -> None:
-        self._ttl = dt.timedelta(seconds=ttl)
+class TTRCache:
+    def __init__(self, ttr: int) -> None:
+        self._ttr = dt.timedelta(seconds=ttr)
         self._cache: dict[CacheKey, tuple[dt.datetime, EntityKind, Entity]] = {}
 
     def _fetch_entity(self, key: CacheKey) -> None:
@@ -133,7 +133,7 @@ class TTLCache:
             self._fetch_entity(key)
             return
         timestamp, *_ = self._cache[key]
-        if dt.datetime.now() - timestamp >= self._ttl:
+        if dt.datetime.now() - timestamp >= self._ttr:
             self._fetch_entity(key)
 
     def __getitem__(self, key: CacheKey) -> tuple[EntityKind, Entity]:
@@ -142,7 +142,7 @@ class TTLCache:
         return kind, entity
 
 
-entity_cache = TTLCache(1800)  # 30 minutes
+entity_cache = TTRCache(1800)  # 30 minutes
 
 message_to_mentions: dict[discord.Message, discord.Message] = {}
 
