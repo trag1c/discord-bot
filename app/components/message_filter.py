@@ -45,9 +45,14 @@ async def check_message_filters(message: discord.Message) -> bool:
     for msg_filter in MESSAGE_FILTERS:
         if message.channel.id != msg_filter.channel_id or msg_filter.filter(message):
             continue
+
         await message.delete()
+
+        # Don't DM the user if it's a system message
+        # (e.g. "@user started a thread")
         if message.type not in REGULAR_MESSAGE_TYPES:
             continue
+
         assert isinstance(message.channel, discord.TextChannel)
         await try_dm(
             message.author,
