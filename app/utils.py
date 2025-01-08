@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import io
 from textwrap import shorten
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import discord
 
@@ -138,11 +138,11 @@ def is_helper(member: discord.Member) -> bool:
     return member.get_role(config.HELPER_ROLE_ID) is not None
 
 
-async def try_dm(account: Account, content: str) -> None:
+async def try_dm(account: Account, content: str, **extras: Any) -> None:
     if account.bot:
         return
     try:
-        await account.send(content)
+        await account.send(content, **extras)
     except discord.Forbidden:
         print(f"Failed to DM {account} with: {shorten(content, width=50)}")
 
