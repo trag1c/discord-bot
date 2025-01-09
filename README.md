@@ -213,7 +213,7 @@ with prefixes:
 
 The bot also keeps a TTR cache to avoid looking up the same entity multiple
 times (with data being refetched 30 minutes since last use), making the bot more
-responsive (the example below can take ~3s on the first lookup and ~50µs on
+responsive (the example below can take ~7s on the first lookup and ~0.5ms on
 subsequent lookups).
 
 <img src="https://github.com/user-attachments/assets/3bf4b978-5cb6-4f1e-a384-cd3397c28da9" alt="Entity mentions example" width="75%">
