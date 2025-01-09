@@ -216,7 +216,7 @@ times (with data being refetched 30 minutes since last use), making the bot more
 responsive (the example below can take ~3s on the first lookup and ~50µs on
 subsequent lookups).
 
-<img src="https://github.com/user-attachments/assets/aa899231-8ca0-4711-8c8b-2cfe5b6a98bb" alt="Entity mentions example" width="75%">
+<img src="https://github.com/user-attachments/assets/3bf4b978-5cb6-4f1e-a384-cd3397c28da9" alt="Entity mentions example" width="75%">
 
 
 ## Message filters
