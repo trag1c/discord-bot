@@ -66,7 +66,7 @@ async def check_message_filters(message: discord.Message) -> bool:
         )
         if content_size := len(message.content):
             notification += MESSAGE_CONTENT_NOTICE
-        await try_dm(message.author, notification, silent=True)
+        await try_dm(message.author, notification, silent=content_size > 0)
 
         if content_size > 2000:
             # The user has Nitro but the bot doesn't,
