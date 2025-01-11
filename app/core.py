@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import sys
 from traceback import print_tb
 from typing import cast
