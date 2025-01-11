@@ -274,9 +274,11 @@ def get_discussion(repo: Repository, number: int) -> SimpleNamespace:
 
 @bot.event
 async def on_message_delete(message: discord.Message) -> None:
-    if (reply := message_to_mentions.get(message)) is not None:
+    if message.author.bot:
+        _unlink_original_message(message)
+    elif (reply := message_to_mentions.get(message)) is not None:
         await reply.delete()
-        del message_to_mentions[message]
+
 
 
 @bot.event
