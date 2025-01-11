@@ -229,7 +229,7 @@ The bot will delete any message:
 It will also DM users about the deletion and provide an explanation to make it
 less confusing:
 
-<img src="https://github.com/user-attachments/assets/263c59cb-19b5-4308-80d8-de464884692f" alt="Message filter notification" width="50%">
+<img src="https://github.com/user-attachments/assets/2064111f-6e64-477c-b564-4034c5245adc" alt="Message filter notification" width="80%">
 
 ## Moving messages
 
