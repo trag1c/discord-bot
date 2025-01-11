@@ -84,17 +84,7 @@ class DeleteMention(discord.ui.View):
         assert interaction.message
         await interaction.message.delete()
 
-        # Unlink the message from the M2M map
-        original_message = next(
-            (
-                message
-                for message, reply in message_to_mentions.items()
-                if reply == interaction.message
-            ),
-            None,
-        )
-        if original_message is not None:
-            del message_to_mentions[original_message]
+        _unlink_original_message(interaction.message)
 
 
 class GitHubUser(Protocol):
@@ -147,6 +137,19 @@ entity_cache = TTRCache(1800)  # 30 minutes
 message_to_mentions: dict[discord.Message, discord.Message] = {}
 
 entity_emojis: dict[str, discord.Emoji] = {}
+
+
+def _unlink_original_message(message: discord.Message) -> None:
+    original_message = next(
+        (
+            msg
+            for msg, reply in message_to_mentions.items()
+            if reply == message
+        ),
+        None,
+    )
+    if original_message is not None:
+        del message_to_mentions[original_message]
 
 
 async def load_emojis() -> None:
