@@ -14,7 +14,11 @@ URL_REGEX = re.compile(
 MESSAGE_DELETION_TEMPLATE = (
     "Hey! Your message in {} was deleted because it did not contain {}."
     " Make sure to include {}, and respond in threads.\n"
-    "Here's the message you tried to send:\n\n"
+)
+MESSAGE_CONTENT_NOTICE = "Here's the message you tried to send:"
+COPY_TEXT_HINT = (
+    "-# **Hint:** You can get your original message with formatting preserved "
+    'by using the "Copy Text" action on right-click.'
 )
 REGULAR_MESSAGE_TYPES = frozenset(
     {discord.MessageType.default, discord.MessageType.reply}
@@ -57,17 +61,28 @@ async def check_message_filters(message: discord.Message) -> bool:
 
         assert isinstance(message.channel, discord.TextChannel)
 
-        content = MESSAGE_DELETION_TEMPLATE.format(
+        notification = MESSAGE_DELETION_TEMPLATE.format(
             message.channel.mention, *msg_filter.template_fillers
         )
-        if len(content + message.content) > 2000:
-            attachments = [
-                discord.File(BytesIO(message.content.encode()), filename="content.md")
-            ]
-        else:
-            attachments = []
-            content += message.content
+        if content_size := len(message.content):
+            notification += MESSAGE_CONTENT_NOTICE
+        await try_dm(message.author, notification, silent=True)
 
-        await try_dm(message.author, content, files=attachments)
+        if content_size > 2000:
+            # The user has Nitro but the bot doesn't,
+            # so we're packing it into a file
+            await try_dm(
+                message.author,
+                "",
+                file=discord.File(
+                    BytesIO(message.content.encode()), filename="content.md"
+                ),
+            )
+        elif content_size > 0:
+            await try_dm(message.author, message.content)
+
+        if 0 < content_size <= 2000:
+            await try_dm(message.author, COPY_TEXT_HINT, silent=True)
+
         return True
     return False
