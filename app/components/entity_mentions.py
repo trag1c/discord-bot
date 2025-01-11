@@ -141,11 +141,7 @@ entity_emojis: dict[str, discord.Emoji] = {}
 
 def _unlink_original_message(message: discord.Message) -> None:
     original_message = next(
-        (
-            msg
-            for msg, reply in message_to_mentions.items()
-            if reply == message
-        ),
+        (msg for msg, reply in message_to_mentions.items() if reply == message),
         None,
     )
     if original_message is not None:
@@ -278,7 +274,6 @@ async def on_message_delete(message: discord.Message) -> None:
         _unlink_original_message(message)
     elif (reply := message_to_mentions.get(message)) is not None:
         await reply.delete()
-
 
 
 @bot.event
