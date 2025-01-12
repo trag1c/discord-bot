@@ -13,7 +13,7 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 from app.setup import bot, config, gh
-from app.utils import is_dm, try_dm
+from app.utils import is_dm, is_mod, try_dm
 
 GITHUB_URL = "https://github.com"
 ENTITY_REGEX = re.compile(r"(?:\b(web|bot|main))?#(\d{1,6})(?!\.\d)\b")
@@ -73,7 +73,9 @@ class DeleteMention(discord.ui.View):
     async def delete(
         self, interaction: discord.Interaction, but: discord.ui.Button
     ) -> None:
-        if interaction.user.id != self.message.author.id:
+        if interaction.user.id != self.message.author.id and not is_mod(
+            self.message.author
+        ):
             await interaction.response.send_message(
                 "Only the person who mentioned "
                 + ("these entities" if self.plural else "this entity")
