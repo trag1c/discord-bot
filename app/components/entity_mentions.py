@@ -74,7 +74,7 @@ class DeleteMention(discord.ui.View):
         self, interaction: discord.Interaction, but: discord.ui.Button
     ) -> None:
         if interaction.user.id != self.message.author.id and not is_mod(
-            self.message.author
+            interaction.user
         ):
             await interaction.response.send_message(
                 "Only the person who mentioned "
