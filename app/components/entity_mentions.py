@@ -73,20 +73,18 @@ class DeleteMention(discord.ui.View):
     async def delete(
         self, interaction: discord.Interaction, but: discord.ui.Button
     ) -> None:
-        if interaction.user.id != self.message.author.id and not is_mod(
-            interaction.user
-        ):
-            await interaction.response.send_message(
-                "Only the person who mentioned "
-                + ("these entities" if self.plural else "this entity")
-                + " can remove this message.",
-                ephemeral=True,
-            )
+        if interaction.user.id == self.message.author.id or is_mod(interaction.user):
+            assert interaction.message
+            await interaction.message.delete()
+            _unlink_original_message(interaction.message)
             return
-        assert interaction.message
-        await interaction.message.delete()
 
-        _unlink_original_message(interaction.message)
+        await interaction.response.send_message(
+            "Only the person who mentioned "
+            + ("these entities" if self.plural else "this entity")
+            + " can remove this message.",
+            ephemeral=True,
+        )
 
 
 class GitHubUser(Protocol):
