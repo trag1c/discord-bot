@@ -10,6 +10,7 @@ GITHUB_ORG = os.environ["GITHUB_ORG"]
 GITHUB_REPOS = dict(val.split(":") for val in os.environ["GITHUB_REPOS"].split(","))
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 
+ACCEPT_INVITE_URL = os.environ["BOT_ACCEPT_INVITE_URL"]
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 
 HELP_CHANNEL_ID = int(os.environ["BOT_HELP_CHANNEL_ID"])
