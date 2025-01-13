@@ -1,4 +1,5 @@
 from app.components import (
+    accept_invite,
     autoclose,
     docs,
     entity_mentions,
@@ -6,4 +7,11 @@ from app.components import (
     move_message,
 )
 
-__all__ = ("autoclose", "docs", "entity_mentions", "message_filter", "move_message")
+__all__ = (
+    "accept_invite",
+    "autoclose",
+    "docs",
+    "entity_mentions",
+    "message_filter",
+    "move_message",
+)
