@@ -1,4 +1,4 @@
-from app.components import (
+from . import (
     accept_invite,
     autoclose,
     docs,

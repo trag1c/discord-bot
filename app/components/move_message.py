@@ -33,9 +33,10 @@ class SelectChannel(discord.ui.View):
         channel = await bot.fetch_channel(sel.values[0].id)
         assert isinstance(channel, GuildTextChannel)
         if channel.id == self.message.channel.id:
-            return await interaction.response.edit_message(
+            await interaction.response.edit_message(
                 content="You can't move a message to the same channel. Pick a different channel"
             )
+            return
 
         await interaction.response.defer()
         webhook_channel, thread = (

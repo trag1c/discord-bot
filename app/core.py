@@ -8,7 +8,11 @@ from sentry_sdk import capture_exception
 
 from app.components.autoclose import autoclose_solved_posts
 from app.components.docs import refresh_sitemap
-from app.components.entity_mentions import ENTITY_REGEX, handle_entities, load_emojis
+from app.components.entity_mentions import (
+    ENTITY_REGEX,
+    load_emojis,
+    reply_with_entities,
+)
 from app.components.message_filter import check_message_filters
 from app.setup import bot, config
 from app.utils import is_dm, is_mod, try_dm
@@ -59,7 +63,7 @@ async def on_message(message: discord.Message) -> None:
 
     # Look for issue/PR/discussion mentions and name/link them
     if ENTITY_REGEX.search(message.content):
-        await handle_entities(message)
+        await reply_with_entities(message)
 
 
 async def sync(bot: commands.Bot, message: discord.Message) -> None:

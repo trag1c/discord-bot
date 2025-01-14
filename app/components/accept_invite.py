@@ -21,5 +21,5 @@ async def accept_invite(interaction: discord.Interaction) -> None:
     assert isinstance(log_channel, discord.TextChannel)
     await log_channel.send(
         f"{interaction.user.mention} accepted the invite!",
-        allowed_mentions=discord.AllowedMentions.none()
+        allowed_mentions=discord.AllowedMentions.none(),
     )
