@@ -1,15 +1,23 @@
+import re
+from types import SimpleNamespace
 from typing import cast
 
 import discord
 
+from app.components.entity_mentions import entity_message
 from app.setup import bot, config
 from app.utils import SERVER_ONLY, is_dm, is_helper, is_mod
 
+TAG_PATTERN = re.compile(r"\[(?:SOLVED|MOVED: #\d+)\]", re.IGNORECASE)
+
 
 @bot.tree.command(name="close", description="Mark current post as resolved.")
+@discord.app_commands.describe(
+    gh_number="GitHub entity number for #help posts moved there"
+)
 @SERVER_ONLY
 async def close_post(
-    interaction: discord.Interaction, moved_to_github: bool = False
+    interaction: discord.Interaction, gh_number: int | None = None
 ) -> None:
     if not (
         isinstance(post := interaction.channel, discord.Thread)
@@ -39,16 +47,27 @@ async def close_post(
         return
 
     help_tags = cast(discord.ForumChannel, post.parent).available_tags
-    desired_tag_id = config.HELP_CHANNEL_TAG_IDS[
-        "github" if moved_to_github else "solved"
-    ]
+    desired_tag_id = config.HELP_CHANNEL_TAG_IDS["github" if gh_number else "solved"]
     tag = next(tag for tag in help_tags if tag.id == desired_tag_id)
     await post.add_tags(tag)
 
     await interaction.response.defer(ephemeral=True)
 
-    if not (moved_to_github or "[solved]" in post.name.casefold()):
-        await post.edit(name=f"[SOLVED] {post.name}")
-    await post.edit(archived=True)
+    if not TAG_PATTERN.search(post.name):
+        post_name_tag = f"[MOVED: #{gh_number}]" if gh_number else "[SOLVED]"
+        await post.edit(name=f"{post_name_tag} {post.name}")
 
+    if gh_number:
+        # Pretending this is a message to use the entity_mentions logic
+        message = cast(
+            discord.Message,
+            SimpleNamespace(
+                content=f"#{gh_number}",
+                author=SimpleNamespace(id=interaction.user.id),
+            ),
+        )
+        msg_content, _ = entity_message(message)
+        await post.send(msg_content)
+
+    await post.edit(archived=True)
     await interaction.followup.send("Post marked as resolved.", ephemeral=True)
