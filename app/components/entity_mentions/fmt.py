@@ -79,7 +79,7 @@ def entity_message(message: discord.Message) -> tuple[str, int]:
     for repo_name, number_ in matches:
         number = int(number_)
         try:
-            kind, entity = entity_cache[cast(RepoName, repo_name or "main"), number]
+            kind, entity = entity_cache.get(cast(RepoName, repo_name or "main"), number)
         except KeyError:
             continue
         if entity.number < 10 and repo_name is None:

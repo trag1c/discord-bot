@@ -51,7 +51,8 @@ class TTRCache:
         if dt.datetime.now() - timestamp >= self._ttr:
             self._fetch_entity(key)
 
-    def __getitem__(self, key: CacheKey) -> tuple[EntityKind, Entity]:
+    def get(self, repo: RepoName, number: int) -> tuple[EntityKind, Entity]:
+        key = repo, number
         self._refresh(key)
         _, kind, entity = self._cache[key]
         return kind, entity
