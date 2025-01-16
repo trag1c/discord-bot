@@ -31,17 +31,15 @@ class TTRCache:
 
     async def _fetch_entity(self, key: CacheKey) -> None:
         repo_name, entity_id = key
-        repo_path = (config.GITHUB_ORG, config.GITHUB_REPOS[repo_name])
+        signature = (config.GITHUB_ORG, config.GITHUB_REPOS[repo_name], entity_id)
         try:
-            entity = (await gh.rest.issues.async_get(*repo_path, entity_id)).parsed_data
+            entity = (await gh.rest.issues.async_get(*signature)).parsed_data
             kind = "Issue"
             if entity.pull_request:
-                entity = (
-                    await gh.rest.pulls.async_get(*repo_path, entity_id)
-                ).parsed_data
+                entity = (await gh.rest.pulls.async_get(*signature)).parsed_data
                 kind = "Pull Request"
         except RequestFailed:
-            entity = await get_discussion(*repo_path, entity_id)
+            entity = await get_discussion(*signature)
             kind = "Discussion"
         self._cache[key] = (dt.datetime.now(), kind, cast(Entity, entity))
 
