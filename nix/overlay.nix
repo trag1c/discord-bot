@@ -8,7 +8,7 @@ final: prev: rec {
   #
 
   # Our custom packages related directly to our application
-  devShell = prev.callPackage ./devshell.nix { };
-  pythonApp = prev.callPackage ./python-app.nix { };
-  app = prev.callPackage ./package.nix { };
+  devShell = prev.callPackage ./devshell.nix {};
+  pythonApp = prev.callPackage ./python-app.nix {};
+  app = prev.callPackage ./package.nix {};
 }

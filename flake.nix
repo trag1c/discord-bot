@@ -17,25 +17,35 @@
     };
 
     # Used for shell.nix
-    flake-compat = { url = github:edolstra/flake-compat; flake = false; };
+    flake-compat = {
+      url = github:edolstra/flake-compat;
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }@inputs:
-    let
-      overlays = [
-        # Our repo overlay
-        (import ./nix/overlay.nix)
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    ...
+  } @ inputs: let
+    overlays = [
+      # Our repo overlay
+      (import ./nix/overlay.nix)
 
-        # poetry2nix overlay
-        inputs.poetry2nix.overlays.default
-      ];
+      # poetry2nix overlay
+      inputs.poetry2nix.overlays.default
+    ];
 
-      # Our supported systems are the same supported systems as the Zig binaries
-      systems = builtins.attrNames inputs.zig.packages;
-    in flake-utils.lib.eachSystem systems (system:
-      let pkgs = import nixpkgs { inherit overlays system; };
+    # Our supported systems are the same supported systems as the Zig binaries
+    systems = builtins.attrNames inputs.zig.packages;
+  in
+    flake-utils.lib.eachSystem systems (
+      system: let
+        pkgs = import nixpkgs {inherit overlays system;};
       in rec {
         devShell = pkgs.devShell;
+        formatter = pkgs.alejandra;
 
         packages.app = pkgs.app;
         defaultPackage = packages.app;

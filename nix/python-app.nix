@@ -1,13 +1,11 @@
-{ poetry2nix
-, lib
-, stdenv
-, substituteAll
-, writeShellScriptBin
-
-, python3
-}:
-
-let
+{
+  poetry2nix,
+  lib,
+  stdenv,
+  substituteAll,
+  writeShellScriptBin,
+  python3,
+}: let
   overrides = poetry2nix.overrides.withDefaults (self: super: {
     # None yet
   });
