@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+import asyncio
 import re
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import discord
 from githubkit.versions.latest.models import Issue, PullRequest
@@ -7,6 +10,9 @@ from githubkit.versions.latest.models import Issue, PullRequest
 from app.setup import bot, config
 
 from .cache import Entity, EntityKind, RepoName, entity_cache
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 GITHUB_URL = "https://github.com"
 ENTITY_REGEX = re.compile(r"(?:\b(web|bot|main))?#(\d{1,6})(?!\.\d)\b")
@@ -67,25 +73,29 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
     return f"{emoji or ":question:"} {headline}\n{subtext}"
 
 
-def entity_message(message: discord.Message) -> tuple[str, int]:
-    matches = dict.fromkeys(m.groups() for m in ENTITY_REGEX.finditer(message.content))
+async def entity_message(message: discord.Message) -> tuple[str, int]:
+    raw_matches = dict.fromkeys(
+        m.groups() for m in ENTITY_REGEX.finditer(message.content)
+    )
     omitted = 0
-    if len(matches) > 10:
+    if len(raw_matches) > 10:
         # Too many mentions, preventing a DoS
-        omitted = len(matches) - 10
-        matches = list(matches)[:10]
+        omitted = len(raw_matches) - 10
+        raw_matches = list(raw_matches)[:10]
 
-    entities: list[str] = []
-    for repo_name, number_ in matches:
-        number = int(number_)
-        try:
-            kind, entity = entity_cache.get(cast(RepoName, repo_name or "main"), number)
-        except KeyError:
-            continue
-        if entity.number < 10 and repo_name is None:
-            # Ignore single-digit mentions (likely a false positive)
-            continue
-        entities.append(_format_mention(entity, kind))
+    matches: Iterator[tuple[RepoName, int]] = (
+        (cast(RepoName, repo_name or "main"), int(number))
+        for repo_name, number in raw_matches
+        # Ignore single-digit mentions (likely a false positive)
+        if repo_name is not None or int(number) >= 10
+    )
+
+    entities = [
+        _format_mention(entity, kind)
+        for kind, entity in await asyncio.gather(
+            *(entity_cache.get(*m) for m in matches)
+        )
+    ]
 
     if len("\n".join(entities)) > 2000:
         while len("\n".join(entities)) > 1975:  # Accounting for omission note
