@@ -105,11 +105,10 @@ async def move_message_via_webhook(
     msg_data = await scrape_message_data(message)
 
     subtext = _format_subtext(executor, msg_data)
-    if len(content := msg_data.content + subtext) > 2000:
-        msg_data.attachments.append(
-            discord.File(io.BytesIO(msg_data.content.encode()), filename="content.md")
-        )
-        content = f"{subtext}\n-# (content attached)"
+    content, file = format_or_file(msg_data.content, template=f"{{}}{subtext}")
+    if file:
+        msg_data.attachments.append(file)
+        content += "\n-# (content attached)"
 
     msg = await webhook.send(
         content=content,
@@ -136,6 +135,19 @@ def is_mod(member: discord.Member) -> bool:
 
 def is_helper(member: discord.Member) -> bool:
     return member.get_role(config.HELPER_ROLE_ID) is not None
+
+
+def format_or_file(
+    message: str, *, template: str | None = None
+) -> tuple[str, discord.File | None]:
+    if template is None:
+        template = "{}"
+
+    if len(full_message := template.format(message)) > 2000:
+        return template.format(""), discord.File(
+            io.BytesIO(message.encode()), filename="content.md"
+        )
+    return full_message, None
 
 
 async def try_dm(account: Account, content: str, **extras: Any) -> None:

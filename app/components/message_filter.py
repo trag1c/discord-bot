@@ -1,12 +1,11 @@
 import re
 from collections.abc import Callable
-from io import BytesIO
 from typing import NamedTuple
 
 import discord
 
 from app.setup import config
-from app.utils import try_dm
+from app.utils import format_or_file, try_dm
 
 URL_REGEX = re.compile(
     r"https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
@@ -68,20 +67,9 @@ async def check_message_filters(message: discord.Message) -> bool:
             notification += MESSAGE_CONTENT_NOTICE
         await try_dm(message.author, notification, silent=content_size > 0)
 
-        if content_size > 2000:
-            # The user has Nitro but the bot doesn't,
-            # so we're packing it into a file
-            await try_dm(
-                message.author,
-                "",
-                file=discord.File(
-                    BytesIO(message.content.encode()), filename="content.md"
-                ),
-            )
-        elif content_size > 0:
-            await try_dm(message.author, message.content)
-
-        if 0 < content_size <= 2000:
+        if content_size > 0:
+            content, file = format_or_file(message.content)
+            await try_dm(message.author, content, file=file)
             await try_dm(message.author, COPY_TEXT_HINT, silent=True)
 
         return True
