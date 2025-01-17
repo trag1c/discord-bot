@@ -19,8 +19,8 @@ query getDiscussion($number: Int!, $org: String!, $repo: String!) {
 """
 
 
-def get_discussion(org: str, name: str, number: int) -> SimpleNamespace:
-    resp = gh.graphql.request(
+async def get_discussion(org: str, name: str, number: int) -> SimpleNamespace:
+    resp = await gh.graphql.arequest(
         DISCUSSION_QUERY, variables={"number": number, "org": org, "repo": name}
     )
     data = resp["repository"]["discussion"]

@@ -72,7 +72,7 @@ async def reply_with_entities(message: discord.Message) -> None:
         )
         return
 
-    msg_content, entity_count = entity_message(message)
+    msg_content, entity_count = await entity_message(message)
     if not entity_count:
         return
 
@@ -95,8 +95,8 @@ async def on_message_delete(message: discord.Message) -> None:
 async def on_message_edit(before: discord.Message, after: discord.Message) -> None:
     if before.content == after.content:
         return
-    old_entites = entity_message(before)
-    new_entities = entity_message(after)
+    old_entites = await entity_message(before)
+    new_entities = await entity_message(after)
     if old_entites == new_entities:
         # Message changed but mentions are the same
         return
