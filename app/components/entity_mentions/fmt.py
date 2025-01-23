@@ -91,10 +91,12 @@ async def entity_message(message: discord.Message) -> tuple[str, int]:
     )
 
     entities = [
-        _format_mention(entity, kind)
-        for kind, entity in await asyncio.gather(
-            *(entity_cache.get(*m) for m in matches)
+        _format_mention(outcome[1], outcome[0])
+        for outcome in await asyncio.gather(
+            *(entity_cache.get(*m) for m in matches),
+            return_exceptions=True,
         )
+        if not isinstance(outcome, BaseException)
     ]
 
     if len("\n".join(entities)) > 2000:
