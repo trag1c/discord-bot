@@ -66,7 +66,7 @@ async def close_post(
                 author=SimpleNamespace(id=interaction.user.id),
             ),
         )
-        msg_content, _ = entity_message(message)
+        msg_content, _ = await entity_message(message)
         await post.send(msg_content)
 
     await post.edit(archived=True)
