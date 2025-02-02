@@ -35,6 +35,7 @@ async def find_repo_owner(name: str) -> str:
 
 
 async def resolve_repo_signatures(content: str) -> AsyncIterator[tuple[str, str, int]]:
+    valid_signatures = 0
     for match in ENTITY_REGEX.finditer(content):
         owner, repo, number = match["owner"], match["repo"], int(match["number"])
         match owner, repo:
@@ -57,3 +58,6 @@ async def resolve_repo_signatures(content: str) -> AsyncIterator[tuple[str, str,
             case owner, repo:
                 # Any public repo, e.g. trag1c/ixia#33.
                 yield owner.rstrip("/"), repo, number
+        valid_signatures += 1
+        if valid_signatures == 10:
+            break

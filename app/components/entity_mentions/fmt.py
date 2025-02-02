@@ -76,11 +76,6 @@ async def entity_message(message: discord.Message) -> tuple[str, int]:
     matches = list(
         dict.fromkeys([r async for r in resolve_repo_signatures(message.content)])
     )
-    omitted = 0
-    if len(matches) > 10:
-        # Too many mentions, preventing a DoS
-        omitted = len(matches) - 10
-        matches = matches[:10]
 
     entities = [
         _format_mention(outcome[1], outcome[0])
@@ -91,9 +86,8 @@ async def entity_message(message: discord.Message) -> tuple[str, int]:
     ]
 
     if len("\n".join(entities)) > 2000:
-        while len("\n".join(entities)) > 1975:  # Accounting for omission note
+        while len("\n".join(entities)) > 1970:  # Accounting for omission note
             entities.pop()
-            omitted += 1
-        entities.append(f"-# Omitted {omitted} mention" + ("s" * (omitted > 1)))
+        entities.append("-# Some mentions were omitted")
 
     return "\n".join(dict.fromkeys(entities)), len(entities)
