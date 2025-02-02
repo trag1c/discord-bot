@@ -1,4 +1,5 @@
 import datetime as dt
+from abc import ABC, abstractmethod
 from typing import Literal, Protocol, cast
 
 from githubkit.exception import RequestFailed
@@ -23,12 +24,31 @@ class Entity(Protocol):
     created_at: dt.datetime
 
 
-class TTRCache:
+class TTRCache[KT, VT](ABC):
     def __init__(self, ttr: int) -> None:
         self._ttr = dt.timedelta(seconds=ttr)
-        self._cache: dict[CacheKey, tuple[dt.datetime, EntityKind, Entity]] = {}
+        self._cache: dict[KT, tuple[dt.datetime, VT]] = {}
 
-    async def _fetch_entity(self, key: CacheKey) -> None:
+    @abstractmethod
+    async def fetch(self, key: KT) -> None:
+        pass
+
+    async def _refresh(self, key: KT) -> None:
+        if key not in self._cache:
+            await self.fetch(key)
+            return
+        timestamp, *_ = self._cache[key]
+        if dt.datetime.now() - timestamp >= self._ttr:
+            await self.fetch(key)
+
+    async def get(self, key: KT) -> VT:
+        await self._refresh(key)
+        _, value = self._cache[key]
+        return value
+
+
+class EntityCache(TTRCache[CacheKey, tuple[EntityKind, Entity]]):
+    async def fetch(self, key: CacheKey) -> None:
         try:
             entity = (await gh.rest.issues.async_get(*key)).parsed_data
             kind = "Issue"
@@ -38,20 +58,7 @@ class TTRCache:
         except RequestFailed:
             entity = await get_discussion(*key)
             kind = "Discussion"
-        self._cache[key] = (dt.datetime.now(), kind, cast(Entity, entity))
-
-    async def _refresh(self, key: CacheKey) -> None:
-        if key not in self._cache:
-            await self._fetch_entity(key)
-            return
-        timestamp, *_ = self._cache[key]
-        if dt.datetime.now() - timestamp >= self._ttr:
-            await self._fetch_entity(key)
-
-    async def get(self, key: CacheKey) -> tuple[EntityKind, Entity]:
-        await self._refresh(key)
-        _, kind, entity = self._cache[key]
-        return kind, entity
+        self._cache[key] = (dt.datetime.now(), (kind, cast(Entity, entity)))
 
 
-entity_cache = TTRCache(1800)  # 30 minutes
+entity_cache = EntityCache(1800)  # 30 minutes
