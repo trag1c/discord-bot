@@ -67,7 +67,7 @@ class EntityCache(TTRCache[CacheKey, tuple[EntityKind, Entity]]):
         except RequestFailed:
             entity = await get_discussion(*key)
             kind = "Discussion"
-        self._cache[key] = (dt.datetime.now(), (kind, cast(Entity, entity)))
+        self[key] = (kind, cast(Entity, entity))
 
 
 entity_cache = EntityCache(1800)  # 30 minutes
