@@ -50,10 +50,11 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
     #    0                   1      2     3       4
     domain, owner, name, *_ = entity.html_url.rsplit("/", 4)
     author = entity.user.login
+    timestamp = int(entity.created_at.timestamp())
     subtext = (
         f"-# by [`{author}`](<{domain}/{author}>)"
         f" in [`{owner}/{name}`](<{"/".join((domain, owner, name))}>)"
-        f" on {entity.created_at:%b %d, %Y}\n"
+        f" on <t:{timestamp}:D> (<t:{timestamp}:R>)\n"
     )
 
     if isinstance(entity, Issue):
