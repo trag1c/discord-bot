@@ -1,21 +1,16 @@
 from __future__ import annotations
 
 import asyncio
-import re
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import discord
 from githubkit.versions.latest.models import Issue, PullRequest
 
+from app.components.entity_mentions.resolution import resolve_repo_signatures
 from app.setup import bot, config
 
-from .cache import Entity, EntityKind, RepoName, entity_cache
+from .cache import Entity, EntityKind, entity_cache
 
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-
-GITHUB_URL = "https://github.com"
-ENTITY_REGEX = re.compile(r"(?:\b(web|bot|main))?#(\d{1,6})(?!\.\d)\b")
 ENTITY_TEMPLATE = "**{kind} [#{entity.number}](<{entity.html_url}>):** {entity.title}"
 EMOJI_NAMES = frozenset(
     {
@@ -50,11 +45,16 @@ async def load_emojis() -> None:
 def _format_mention(entity: Entity, kind: EntityKind) -> str:
     headline = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
 
-    # Include author and creation date
+    # https://github.com/owner/repo/issues/12
+    # -> https://github.com  owner  repo  issues  12
+    #    0                   1      2     3       4
+    domain, owner, name, *_ = entity.html_url.rsplit("/", 4)
     author = entity.user.login
+    timestamp = int(entity.created_at.timestamp())
     subtext = (
-        f"-# by [`{author}`](<{GITHUB_URL}/{author}>)"
-        f" on {entity.created_at:%b %d, %Y}\n"
+        f"-# by [`{author}`](<{domain}/{author}>)"
+        f" in [`{owner}/{name}`](<{"/".join((domain, owner, name))}>)"
+        f" on <t:{timestamp}:D> (<t:{timestamp}:R>)\n"
     )
 
     if isinstance(entity, Issue):
@@ -74,35 +74,21 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
 
 
 async def entity_message(message: discord.Message) -> tuple[str, int]:
-    raw_matches = dict.fromkeys(
-        m.groups() for m in ENTITY_REGEX.finditer(message.content)
-    )
-    omitted = 0
-    if len(raw_matches) > 10:
-        # Too many mentions, preventing a DoS
-        omitted = len(raw_matches) - 10
-        raw_matches = list(raw_matches)[:10]
-
-    matches: Iterator[tuple[RepoName, int]] = (
-        (cast(RepoName, repo_name or "main"), int(number))
-        for repo_name, number in raw_matches
-        # Ignore single-digit mentions (likely a false positive)
-        if repo_name is not None or int(number) >= 10
+    matches = list(
+        dict.fromkeys([r async for r in resolve_repo_signatures(message.content)])
     )
 
     entities = [
         _format_mention(outcome[1], outcome[0])
         for outcome in await asyncio.gather(
-            *(entity_cache.get(*m) for m in matches),
-            return_exceptions=True,
+            *(entity_cache.get(m) for m in matches), return_exceptions=True
         )
         if not isinstance(outcome, BaseException)
     ]
 
     if len("\n".join(entities)) > 2000:
-        while len("\n".join(entities)) > 1975:  # Accounting for omission note
+        while len("\n".join(entities)) > 1970:  # Accounting for omission note
             entities.pop()
-            omitted += 1
-        entities.append(f"-# Omitted {omitted} mention" + ("s" * (omitted > 1)))
+        entities.append("-# Some mentions were omitted")
 
     return "\n".join(dict.fromkeys(entities)), len(entities)
