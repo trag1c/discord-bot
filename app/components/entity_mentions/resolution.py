@@ -4,6 +4,7 @@ from contextlib import suppress
 
 from githubkit.exception import RequestFailed
 
+from app.components.entity_mentions.cache import TTRCache
 from app.setup import config, gh
 
 ENTITY_REGEX = re.compile(
@@ -12,6 +13,14 @@ ENTITY_REGEX = re.compile(
     r"#(?P<number>\d{1,6})(?!\.\d)\b",
     re.IGNORECASE,
 )
+
+
+class OwnerCache(TTRCache[str, str]):
+    async def fetch(self, key: str) -> None:
+        self[key] = await find_repo_owner(key)
+
+
+owner_cache = OwnerCache(3600)  # 1 hour
 
 
 async def find_repo_owner(name: str) -> str:
@@ -41,7 +50,7 @@ async def resolve_repo_signatures(content: str) -> AsyncIterator[tuple[str, str,
             case None, repo:
                 # Only a name provided, e.g. uv#8020.
                 with suppress(RequestFailed, RuntimeError):
-                    yield await find_repo_owner(repo), repo, number
+                    yield await owner_cache.get(repo), repo, number
             case owner, None:
                 # Invalid case, e.g. trag1c/#123
                 continue
