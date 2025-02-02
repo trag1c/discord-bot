@@ -11,7 +11,6 @@ from app.setup import bot, config
 
 from .cache import Entity, EntityKind, entity_cache
 
-GITHUB_URL = "https://github.com"
 ENTITY_TEMPLATE = "**{kind} [#{entity.number}](<{entity.html_url}>):** {entity.title}"
 EMOJI_NAMES = frozenset(
     {
@@ -46,10 +45,14 @@ async def load_emojis() -> None:
 def _format_mention(entity: Entity, kind: EntityKind) -> str:
     headline = ENTITY_TEMPLATE.format(kind=kind, entity=entity)
 
-    # Include author and creation date
+    # https://github.com/owner/repo/issues/12
+    # -> https://github.com  owner  repo  issues  12
+    #    0                   1      2     3       4
+    domain, owner, name, *_ = entity.html_url.rsplit("/", 4)
     author = entity.user.login
     subtext = (
-        f"-# by [`{author}`](<{GITHUB_URL}/{author}>)"
+        f"-# by [`{author}`](<{domain}/{author}>)"
+        f" in [`{owner}/{name}`](<{"/".join((domain, owner, name))}>)"
         f" on {entity.created_at:%b %d, %Y}\n"
     )
 
