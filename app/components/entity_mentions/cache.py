@@ -29,21 +29,30 @@ class TTRCache[KT, VT](ABC):
         self._ttr = dt.timedelta(seconds=ttr)
         self._cache: dict[KT, tuple[dt.datetime, VT]] = {}
 
+    def __contains__(self, key: KT) -> bool:
+        return key in self._cache
+
+    def __getitem__(self, key: KT) -> tuple[dt.datetime, VT]:
+        return self._cache[key]
+
+    def __setitem__(self, key: KT, value: VT) -> None:
+        self._cache[key] = (dt.datetime.now(), value)
+
     @abstractmethod
     async def fetch(self, key: KT) -> None:
         pass
 
     async def _refresh(self, key: KT) -> None:
-        if key not in self._cache:
+        if key not in self:
             await self.fetch(key)
             return
-        timestamp, *_ = self._cache[key]
+        timestamp, *_ = self[key]
         if dt.datetime.now() - timestamp >= self._ttr:
             await self.fetch(key)
 
     async def get(self, key: KT) -> VT:
         await self._refresh(key)
-        _, value = self._cache[key]
+        _, value = self[key]
         return value
 
 
