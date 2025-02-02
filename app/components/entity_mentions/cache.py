@@ -3,12 +3,11 @@ from typing import Literal, Protocol, cast
 
 from githubkit.exception import RequestFailed
 
-from app.setup import config, gh
+from app.setup import gh
 
 from .discussions import get_discussion
 
-type RepoName = Literal["web", "bot", "main"]
-type CacheKey = tuple[RepoName, int]
+type CacheKey = tuple[str, str, int]
 type EntityKind = Literal["Pull Request", "Issue", "Discussion"]
 
 
@@ -30,16 +29,14 @@ class TTRCache:
         self._cache: dict[CacheKey, tuple[dt.datetime, EntityKind, Entity]] = {}
 
     async def _fetch_entity(self, key: CacheKey) -> None:
-        repo_name, entity_id = key
-        signature = (config.GITHUB_ORG, config.GITHUB_REPOS[repo_name], entity_id)
         try:
-            entity = (await gh.rest.issues.async_get(*signature)).parsed_data
+            entity = (await gh.rest.issues.async_get(*key)).parsed_data
             kind = "Issue"
             if entity.pull_request:
-                entity = (await gh.rest.pulls.async_get(*signature)).parsed_data
+                entity = (await gh.rest.pulls.async_get(*key)).parsed_data
                 kind = "Pull Request"
         except RequestFailed:
-            entity = await get_discussion(*signature)
+            entity = await get_discussion(*key)
             kind = "Discussion"
         self._cache[key] = (dt.datetime.now(), kind, cast(Entity, entity))
 
@@ -51,8 +48,7 @@ class TTRCache:
         if dt.datetime.now() - timestamp >= self._ttr:
             await self._fetch_entity(key)
 
-    async def get(self, repo: RepoName, number: int) -> tuple[EntityKind, Entity]:
-        key = repo, number
+    async def get(self, key: CacheKey) -> tuple[EntityKind, Entity]:
         await self._refresh(key)
         _, kind, entity = self._cache[key]
         return kind, entity

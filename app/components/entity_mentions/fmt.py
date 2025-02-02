@@ -1,21 +1,17 @@
 from __future__ import annotations
 
 import asyncio
-import re
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import discord
 from githubkit.versions.latest.models import Issue, PullRequest
 
+from app.components.entity_mentions.resolution import resolve_repo_signatures
 from app.setup import bot, config
 
-from .cache import Entity, EntityKind, RepoName, entity_cache
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
+from .cache import Entity, EntityKind, entity_cache
 
 GITHUB_URL = "https://github.com"
-ENTITY_REGEX = re.compile(r"(?:\b(web|bot|main))?#(\d{1,6})(?!\.\d)\b")
 ENTITY_TEMPLATE = "**{kind} [#{entity.number}](<{entity.html_url}>):** {entity.title}"
 EMOJI_NAMES = frozenset(
     {
@@ -74,27 +70,19 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
 
 
 async def entity_message(message: discord.Message) -> tuple[str, int]:
-    raw_matches = dict.fromkeys(
-        m.groups() for m in ENTITY_REGEX.finditer(message.content)
+    matches = list(
+        dict.fromkeys([r async for r in resolve_repo_signatures(message.content)])
     )
     omitted = 0
-    if len(raw_matches) > 10:
+    if len(matches) > 10:
         # Too many mentions, preventing a DoS
-        omitted = len(raw_matches) - 10
-        raw_matches = list(raw_matches)[:10]
-
-    matches: Iterator[tuple[RepoName, int]] = (
-        (cast(RepoName, repo_name or "main"), int(number))
-        for repo_name, number in raw_matches
-        # Ignore single-digit mentions (likely a false positive)
-        if repo_name is not None or int(number) >= 10
-    )
+        omitted = len(matches) - 10
+        matches = matches[:10]
 
     entities = [
         _format_mention(outcome[1], outcome[0])
         for outcome in await asyncio.gather(
-            *(entity_cache.get(*m) for m in matches),
-            return_exceptions=True,
+            *(entity_cache.get(m) for m in matches), return_exceptions=True
         )
         if not isinstance(outcome, BaseException)
     ]
