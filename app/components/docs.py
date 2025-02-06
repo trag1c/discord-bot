@@ -117,20 +117,22 @@ async def page_autocomplete(
 async def docs(
     interaction: discord.Interaction, section: str, page: str, message: str = ""
 ) -> None:
+    try:
+        await interaction.response.send_message(
+            f"{message}\n{get_docs_link(section, page)}"
+        )
+    except ValueError as exc:
+        await interaction.response.send_message(str(exc), ephemeral=True)
+
+
+def get_docs_link(section: str, page: str) -> str:
     if section not in SECTIONS:
-        await interaction.response.send_message(
-            f"Invalid section {section!r}", ephemeral=True
-        )
-        return
+        msg = f"Invalid section {section!r}"
+        raise ValueError(msg)
     if page not in sitemap.get(section, []):
-        await interaction.response.send_message(
-            f"Invalid page {page!r}", ephemeral=True
-        )
-        return
-
-    section_path = SECTIONS[section]
-    page = page if page != "overview" else ""
-
-    await interaction.response.send_message(
-        f"{message}\n{URL_TEMPLATE.format(section=section_path, page=page)}"
+        msg = f"Invalid page {page!r}"
+        raise ValueError(msg)
+    return URL_TEMPLATE.format(
+        section=SECTIONS[section],
+        page=page if page != "overview" else "",
     )
