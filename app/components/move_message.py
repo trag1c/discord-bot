@@ -4,7 +4,6 @@ import discord
 
 from app.setup import bot, config
 from app.utils import (
-    SERVER_ONLY,
     GuildTextChannel,
     get_or_create_webhook,
     is_dm,
@@ -110,7 +109,7 @@ class HelpPostTitle(discord.ui.Modal, title="Turn into #help post"):
 
 @bot.tree.context_menu(name="Move message")
 @discord.app_commands.default_permissions(manage_messages=True)
-@SERVER_ONLY
+@discord.app_commands.guild_only()
 async def move_message(
     interaction: discord.Interaction, message: discord.Message
 ) -> None:
@@ -135,7 +134,7 @@ async def move_message(
 
 @bot.tree.context_menu(name="Turn into #help post")
 @discord.app_commands.default_permissions(manage_messages=True)
-@SERVER_ONLY
+@discord.app_commands.guild_only()
 async def turn_into_help_post(
     interaction: discord.Interaction, message: discord.Message
 ) -> None:

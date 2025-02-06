@@ -1,11 +1,11 @@
 import discord
 
 from app.setup import bot, config
-from app.utils import SERVER_ONLY, is_dm, try_dm
+from app.utils import is_dm, try_dm
 
 
 @bot.tree.command(name="accept-invite", description="Accept a pending tester invite.")
-@SERVER_ONLY
+@discord.app_commands.guild_only()
 async def accept_invite(interaction: discord.Interaction) -> None:
     assert not is_dm(interaction.user)
 

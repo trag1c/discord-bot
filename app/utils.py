@@ -15,10 +15,6 @@ if TYPE_CHECKING:
 
 MAX_ATTACHMENT_SIZE = 67_108_864  # 64 MiB
 
-SERVER_ONLY = discord.app_commands.allowed_contexts(
-    guilds=True, dms=False, private_channels=False
-)
-
 type Account = discord.User | discord.Member
 GuildTextChannel = discord.TextChannel | discord.Thread
 

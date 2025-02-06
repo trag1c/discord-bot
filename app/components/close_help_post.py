@@ -6,7 +6,7 @@ import discord
 
 from app.components.entity_mentions import entity_message
 from app.setup import bot, config
-from app.utils import SERVER_ONLY, is_dm, is_helper, is_mod
+from app.utils import is_dm, is_helper, is_mod
 
 TAG_PATTERN = re.compile(r"\[(?:SOLVED|MOVED: #\d+)\]", re.IGNORECASE)
 
@@ -15,7 +15,7 @@ TAG_PATTERN = re.compile(r"\[(?:SOLVED|MOVED: #\d+)\]", re.IGNORECASE)
 @discord.app_commands.describe(
     gh_number="GitHub entity number for #help posts moved there"
 )
-@SERVER_ONLY
+@discord.app_commands.guild_only()
 async def close_post(
     interaction: discord.Interaction, gh_number: int | None = None
 ) -> None:

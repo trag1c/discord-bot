@@ -7,7 +7,6 @@ import discord
 from discord.app_commands import Choice, autocomplete
 
 from app.setup import bot, config, gh
-from app.utils import SERVER_ONLY
 
 URL_TEMPLATE = "https://ghostty.org/docs/{section}{page}"
 
@@ -114,7 +113,7 @@ async def page_autocomplete(
 
 @bot.tree.command(name="docs", description="Link a documentation page.")
 @autocomplete(section=section_autocomplete, page=page_autocomplete)
-@SERVER_ONLY
+@discord.app_commands.guild_only()
 async def docs(
     interaction: discord.Interaction, section: str, page: str, message: str = ""
 ) -> None:
