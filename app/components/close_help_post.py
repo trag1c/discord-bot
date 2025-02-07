@@ -60,7 +60,7 @@ class Close(app_commands.Group):
         else:
             # Help post ID
             title_prefix = None
-            additional_reply = f"Original post: <#{id_}>"
+            additional_reply = f"Duplicate of: <#{id_}>"
         await close_post(interaction, "duplicate", title_prefix, additional_reply)
 
     @app_commands.command(name="stale", description="Mark post as stale.")
@@ -119,4 +119,4 @@ async def close_post(
     if additional_reply:
         await post.send(additional_reply)
 
-    await interaction.followup.send("Post resolved.", ephemeral=True)
+    await interaction.followup.send("Post closed.", ephemeral=True)
