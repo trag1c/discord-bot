@@ -52,8 +52,13 @@ class Close(app_commands.Group):
         original="The original GitHub entity (number) or help post (ID or link)"
     )
     async def duplicate(self, interaction: discord.Interaction, original: str) -> None:
-        *_, id_ = original.rpartition("/")
-        if len(id_) < 10:
+        *_, str_id = original.rpartition("/")
+        try:
+            id_ = int(str_id)
+        except ValueError:
+            await interaction.response.send_message("Invalid ID.", ephemeral=True)
+            return
+        if len(str_id) < 10:
             # GitHub entity number
             title_prefix = f"[DUPLICATE: #{id_}]"
             additional_reply = await mention_entity(int(id_), interaction.user.id)
