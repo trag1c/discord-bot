@@ -16,8 +16,9 @@ async def autoclose_solved_posts() -> None:
     help_channel = cast(discord.ForumChannel, bot.get_channel(config.HELP_CHANNEL_ID))
     open_posts = len(help_channel.threads)
     for post in help_channel.threads:
-        if post.archived or not (
-            _has_tag(post, "solved") or _has_tag(post, "moved to github")
+        if post.archived or not any(
+            _has_tag(post, tag)
+            for tag in ("solved", "moved to github", "duplicate", "stale")
         ):
             continue
         if post.last_message_id is None:
