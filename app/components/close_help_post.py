@@ -31,7 +31,13 @@ class Close(app_commands.Group):
         self, interaction: discord.Interaction, config_option: str | None = None
     ) -> None:
         if config_option:
-            additional_reply = get_docs_link("option", config_option)
+            try:
+                additional_reply = get_docs_link("option", config_option)
+            except ValueError:
+                await interaction.response.send_message(
+                    f"Invalid config option: `{config_option}`", ephemeral=True
+                )
+                return
             title_prefix = f"[SOLVED: {config_option}]"
         else:
             title_prefix = additional_reply = None
