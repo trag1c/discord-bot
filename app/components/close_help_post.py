@@ -1,23 +1,96 @@
-import re
 from types import SimpleNamespace
-from typing import cast
+from typing import Literal, cast
 
 import discord
+from discord import app_commands
 
+from app.components.docs import get_docs_link
 from app.components.entity_mentions import entity_message
 from app.setup import bot, config
 from app.utils import is_dm, is_helper, is_mod
 
-TAG_PATTERN = re.compile(r"\[(?:SOLVED|MOVED: #\d+)\]", re.IGNORECASE)
+
+async def mention_entity(entity_id: int, owner_id: int) -> str:
+    msg, _ = await entity_message(
+        # Forging a message to use the entity_mentions logic
+        cast(
+            discord.Message,
+            SimpleNamespace(
+                content=f"#{entity_id}",
+                author=SimpleNamespace(id=owner_id),
+            ),
+        )
+    )
+    return msg
 
 
-@bot.tree.command(name="close", description="Mark current post as resolved.")
-@discord.app_commands.describe(
-    gh_number="GitHub entity number for #help posts moved there"
-)
-@discord.app_commands.guild_only()
+class Close(app_commands.Group):
+    @app_commands.command(name="solved", description="Mark post as solved.")
+    @app_commands.describe(config_option="Config option name (optional)")
+    async def solved(
+        self, interaction: discord.Interaction, config_option: str | None = None
+    ) -> None:
+        if config_option:
+            try:
+                additional_reply = get_docs_link("option", config_option)
+            except ValueError:
+                await interaction.response.send_message(
+                    f"Invalid config option: `{config_option}`", ephemeral=True
+                )
+                return
+            title_prefix = f"[SOLVED: {config_option}]"
+        else:
+            title_prefix = additional_reply = None
+        await close_post(interaction, "solved", title_prefix, additional_reply)
+
+    @app_commands.command(name="moved", description="Mark post as moved to GitHub.")
+    @app_commands.describe(entity_id="New GitHub entity number")
+    async def moved(self, interaction: discord.Interaction, entity_id: int) -> None:
+        await close_post(
+            interaction,
+            "moved",
+            title_prefix=f"[MOVED: #{entity_id}]",
+            additional_reply=await mention_entity(entity_id, interaction.user.id),
+        )
+
+    @app_commands.command(name="duplicate", description="Mark post as duplicate.")
+    @app_commands.describe(
+        original="The original GitHub entity (number) or help post (ID or link)"
+    )
+    async def duplicate(self, interaction: discord.Interaction, original: str) -> None:
+        *_, str_id = original.rpartition("/")
+        try:
+            id_ = int(str_id)
+        except ValueError:
+            await interaction.response.send_message("Invalid ID.", ephemeral=True)
+            return
+        if len(str_id) < 10:
+            # GitHub entity number
+            title_prefix = f"[DUPLICATE: #{id_}]"
+            additional_reply = await mention_entity(int(id_), interaction.user.id)
+        else:
+            # Help post ID
+            title_prefix = None
+            additional_reply = f"Duplicate of: <#{id_}>"
+        await close_post(interaction, "duplicate", title_prefix, additional_reply)
+
+    @app_commands.command(name="stale", description="Mark post as stale.")
+    async def stale(self, interaction: discord.Interaction) -> None:
+        await close_post(interaction, "stale")
+
+    @app_commands.command(name="wontfix", description="Mark post as stale.")
+    async def wontfix(self, interaction: discord.Interaction) -> None:
+        await close_post(interaction, "stale", "[WON'T FIX]")
+
+
+bot.tree.add_command(Close(name="close", description="Mark current post as resolved."))
+
+
 async def close_post(
-    interaction: discord.Interaction, gh_number: int | None = None
+    interaction: discord.Interaction,
+    tag: Literal["solved", "moved", "duplicate", "stale"],
+    title_prefix: str | None = None,
+    additional_reply: str | None = None,
 ) -> None:
     if not (
         isinstance(post := interaction.channel, discord.Thread)
@@ -29,45 +102,32 @@ async def close_post(
         )
         return
 
-    assert not is_dm(interaction.user)
-    if not (
-        is_mod(interaction.user)
-        or is_helper(interaction.user)
-        or interaction.user.id == post.owner_id
-    ):
+    user = interaction.user
+    assert not is_dm(user)
+    if not (is_mod(user) or is_helper(user) or user.id == post.owner_id):
         await interaction.response.send_message(
-            "You don't have permission to close this post.", ephemeral=True
+            "You don't have permission to resolve this post.", ephemeral=True
         )
         return
 
-    if post.archived:
+    help_tags = {tag for tag in cast(discord.ForumChannel, post.parent).available_tags}
+
+    if set(post.applied_tags) & help_tags:
         await interaction.response.send_message(
-            "This post is already closed.", ephemeral=True
+            "This post was already resolved.", ephemeral=True
         )
         return
-
-    help_tags = cast(discord.ForumChannel, post.parent).available_tags
-    desired_tag_id = config.HELP_CHANNEL_TAG_IDS["github" if gh_number else "solved"]
-    tag = next(tag for tag in help_tags if tag.id == desired_tag_id)
-    await post.add_tags(tag)
 
     await interaction.response.defer(ephemeral=True)
 
-    if not TAG_PATTERN.search(post.name):
-        post_name_tag = f"[MOVED: #{gh_number}]" if gh_number else "[SOLVED]"
-        await post.edit(name=f"{post_name_tag} {post.name}")
+    desired_tag_id = config.HELP_CHANNEL_TAG_IDS[tag]
+    await post.add_tags(next(tag for tag in help_tags if tag.id == desired_tag_id))
 
-    if gh_number:
-        # Pretending this is a message to use the entity_mentions logic
-        message = cast(
-            discord.Message,
-            SimpleNamespace(
-                content=f"#{gh_number}",
-                author=SimpleNamespace(id=interaction.user.id),
-            ),
-        )
-        msg_content, _ = await entity_message(message)
-        await post.send(msg_content)
+    if title_prefix is None:
+        title_prefix = f"[{tag.upper()}]"
+    await post.edit(name=f"{title_prefix} {post.name}")
 
-    await post.edit(archived=True)
-    await interaction.followup.send("Post marked as resolved.", ephemeral=True)
+    if additional_reply:
+        await post.send(additional_reply)
+
+    await interaction.followup.send("Post closed.", ephemeral=True)
