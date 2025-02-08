@@ -110,7 +110,11 @@ async def close_post(
         )
         return
 
-    help_tags = {tag for tag in cast(discord.ForumChannel, post.parent).available_tags}
+    help_tags = {
+        tag
+        for tag in cast(discord.ForumChannel, post.parent).available_tags
+        if tag.id in config.HELP_CHANNEL_TAG_IDS.values()
+    }
 
     if set(post.applied_tags) & help_tags:
         await interaction.response.send_message(
