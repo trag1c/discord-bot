@@ -33,7 +33,10 @@ class SelectChannel(discord.ui.View):
         assert isinstance(channel, GuildTextChannel)
         if channel.id == self.message.channel.id:
             await interaction.response.edit_message(
-                content="You can't move a message to the same channel. Pick a different channel"
+                content=(
+                    "You can't move a message to the same channel."
+                    " Pick a different channel."
+                )
             )
             return
 
@@ -71,7 +74,10 @@ class Ghostping(discord.ui.View):
     ) -> None:
         button.disabled = True
         await interaction.response.edit_message(
-            content=f"Moved the message to {self._channel.mention} and ghostpinged {self._author.mention}.",
+            content=(
+                f"Moved the message to {self._channel.mention}"
+                f" and ghostpinged {self._author.mention}."
+            ),
             view=self,
         )
         await (await self._channel.send(self._author.mention)).delete()

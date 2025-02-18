@@ -36,7 +36,7 @@ class TTRCache[KT, VT](ABC):
         return self._cache[key]
 
     def __setitem__(self, key: KT, value: VT) -> None:
-        self._cache[key] = (dt.datetime.now(), value)
+        self._cache[key] = (dt.datetime.now(tz=dt.UTC), value)
 
     @abstractmethod
     async def fetch(self, key: KT) -> None:
@@ -47,7 +47,7 @@ class TTRCache[KT, VT](ABC):
             await self.fetch(key)
             return
         timestamp, *_ = self[key]
-        if dt.datetime.now() - timestamp >= self._ttr:
+        if dt.datetime.now(tz=dt.UTC) - timestamp >= self._ttr:
             await self.fetch(key)
 
     async def get(self, key: KT) -> VT:

@@ -18,8 +18,6 @@ community moderation more efficient.
   - [3. Preparing a Discord server](#3-preparing-a-discord-server)
   - [4. Preparing the `.env` file](#4-preparing-the-env-file)
   - [5. Running the bot](#5-running-the-bot)
-    - [Nix](#nix)
-    - [Non-Nix](#non-nix)
 - [Project structure](#project-structure)
 - [Features](#features)
   - [`/docs`](#docs)
@@ -38,16 +36,6 @@ community moderation more efficient.
 > this guide is to help contributors set up their development environment for
 > building and testing new features. **Contributions are the goal, not
 > standalone usage.**
->
-> The bot is built and deployed using Nix. While it's possible to develop the
-> bot without it, the preferred and supported method is through a Nix-based
-> workflow. To that end:
-> * The bot must successfully build and run using the Nix setup.
-> * If you're developing outside of Nix, you are responsible for troubleshooting
->   any issues that arise.\
->   **As a tip:** as long as no changes are made to the project's configuration
->   (e.g. build dependencies), if the bot successfully runs outside of Nix, it
->   will most likely work within Nix as well.
 
 ## 1. Preparing a Discord application
 
@@ -130,38 +118,16 @@ Below are explanations for each variable:
 
 ## 5. Running the bot
 
-### Nix
-
-Run the bot with:
-```console
-$ python -m app
-...
-```
-
-After you've made your changes, run the linter and formatter:
-```console
-$ ruff check
-$ ruff format
-```
-
-
-### Non-Nix
-
-This bot runs on Python 3.12+ and is managed with [Poetry]. To get started:
-1. Install Poetry (e.g. via [uv] or [pipx]).
-2. Install the project and run the bot:
+This bot runs on Python 3.12+ and is managed with [uv]. To get started:
+1. Install [uv].
+2. Run the bot:
    ```console
-   $ poetry install
+   $ uv run -m app
    ```
-3. Run the bot:
+3. After you've made your changes, run the linter and formatter:
    ```console
-   $ poetry run python -m app
-   ...
-   ```
-4. After you've made your changes, run the linter and formatter:
-   ```console
-   $ poetry run ruff check
-   $ poetry run ruff format
+   $ uv run ruff check
+   $ uv run ruff format
    ```
 
 
@@ -249,7 +215,5 @@ related feature:
 [discord-invite]: https://discord.gg/ghostty
 [gh-new-token]: https://github.com/settings/tokens/new
 [main-repo]: https://github.com/ghostty-org/ghostty
-[pipx]: https://pipx.pypa.io/
-[Poetry]: https://python-poetry.org/
 [uv]: https://docs.astral.sh/uv/
 [website-repo]: https://github.com/ghostty-org/website
