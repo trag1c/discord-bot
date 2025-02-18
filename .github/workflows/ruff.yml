@@ -4,6 +4,10 @@ on:
       - main
   pull_request:
 
+env:
+  PY_COLORS: 1
+  UV_VERSION: 0.6.1
+
 name: Ruff
 jobs:
   check-ruff:
@@ -12,12 +16,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Setup Nix
-        uses: cachix/install-nix-action@V27
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
+          version: ${{ env.UV_VERSION }}
+      - name: Install project
+        run: uv sync
       - name: Lint code
         run: |
-          nix develop -c ruff check
-          nix develop -c ruff format --check
-          nix develop -c alejandra --check .
+          uv run ruff check
+          uv run ruff format --check
