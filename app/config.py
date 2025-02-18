@@ -14,8 +14,8 @@ ACCEPT_INVITE_URL = os.environ["BOT_ACCEPT_INVITE_URL"]
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 
 HELP_CHANNEL_TAG_IDS = {
-    name: int(id)
-    for name, id in (
+    name: int(id_)
+    for name, id_ in (
         pair.split(":") for pair in os.environ["BOT_HELP_CHANNEL_TAG_IDS"].split(",")
     )
 }

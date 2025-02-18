@@ -53,7 +53,7 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
     timestamp = int(entity.created_at.timestamp())
     subtext = (
         f"-# by [`{author}`](<{domain}/{author}>)"
-        f" in [`{owner}/{name}`](<{"/".join((domain, owner, name))}>)"
+        f" in [`{owner}/{name}`](<{domain}/{owner}/{name}>)"
         f" on <t:{timestamp}:D> (<t:{timestamp}:R>)\n"
     )
 
@@ -70,7 +70,7 @@ def _format_mention(entity: Entity, kind: EntityKind) -> str:
         answered = getattr(entity, "answered", False)
         emoji = entity_emojis.get("discussion_answered" if answered else "issue_draft")
 
-    return f"{emoji or ":question:"} {headline}\n{subtext}"
+    return f"{emoji or ':question:'} {headline}\n{subtext}"
 
 
 async def entity_message(message: discord.Message) -> tuple[str, int]:
